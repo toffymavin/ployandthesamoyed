@@ -319,7 +319,8 @@ const timeLine=()=>{const h=new Date().getHours();return h<5?"Ploy, it's so late
 const fresh=()=>({v:1,name:'',last:Date.now(),st:{hunger:80,happy:80,clean:90,energy:85},xp:0,lv:1,sleep:false,fur:0,pats:0,eq:{hat:null,neck:'scarf'},sfx:true,music:true,read:[],fluff:0,strokes:0,snacks:0,tr:{},trip:null,stamps:{},spent:0,owned:[],deco:[],notes:{i:0,day:'',ann:'',read:[]},cg:{day:'',n:0},bx:{day:'',n:0},q:{day:today(),p:{},done:[]}});
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r),b=fresh();return Object.assign(b,o,{st:Object.assign(b.st,o.st),eq:Object.assign(b.eq,o.eq),q:Object.assign(b.q,o.q),notes:Object.assign(b.notes,o.notes||{})})}}catch(e){}return null}
 let canStore=false;try{localStorage.setItem(KEY+'-t','1');canStore=localStorage.getItem(KEY+'-t')==='1';localStorage.removeItem(KEY+'-t')}catch(e){}
-function save(){S.last=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let resetting=false;
+function save(){if(resetting)return;S.last=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 let S=load();const first=!S;if(first)S=fresh();
 const T=s=>s.replace(/\{n\}/g,S.name||'your pup');
 
@@ -754,7 +755,7 @@ const ACT={feed:()=>S.sleep?blockedAsleep():foodPane(),eat:d=>eat(d.id),play:pla
  close:()=>{locked=false;close()},snd:d=>{S[d.k]=!S[d.k];if(d.k==='music'){unlock();musicLevel()}else if(S.sfx)sfx('tap');drawSound();save()},rename:()=>namePane(false),read:d=>readLetter(+d.i),
  claim:d=>{const q=QUESTS.find(x=>x.id===d.id);if(!q||S.q.done.includes(q.id)||(S.q.p[q.id]||0)<q.g)return;S.q.done.push(q.id);sfx('coin');toast(`+${q.xp} XP`);const lv=S.lv;gain(q.xp);if(S.lv===lv)questPane();save()},
  wear:d=>{const i=ITEMS.find(x=>x.id===d.id);if(!i||!unlocked(i))return;locked=false;S.eq[i.slot]=S.eq[i.slot]===i.id?null:i.id;drawDog(true);if(paneKind==='stamp'){locked=false;close()}else closetPane();sfx('yip');save();if(S.eq[i.slot])say(pick(['How do I look, Ploy?','Fashion!','Matching with the market lights!']))},
- reset:()=>{try{localStorage.removeItem(KEY)}catch(e){}location.hash='';location.reload()}};
+ reset:()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(KEY+'-album')}catch(e){}location.replace(location.pathname+location.search)}};
 document.addEventListener('click',e=>{if(noClick&&e.target.closest('#scene'))return;const t=e.target.closest('[data-a]');if(t&&!t.disabled){ACT[t.dataset.a]&&ACT[t.dataset.a](t.dataset);if(t.dataset.a!=='reset')save();return}
  const tu=e.target.closest('.tuft');if(tu){grabFur(+tu.dataset.t);save();return}
  if(e.target.closest('#note')){readNote();return}
