@@ -928,14 +928,18 @@ function openCookie(){if(!cookieReady())return;const pool=(S.trip||Math.random()
 function showFortune(){open(`<div class="fc"><svg viewBox="0 0 120 70" class="fcck"><g class="fl1"><path d="M10 50Q6 20 40 18Q50 30 46 52Q30 44 10 50Z" fill="#e9b96e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></g><g class="fl2"><path d="M110 50Q114 20 80 18Q70 30 74 52Q90 44 110 50Z" fill="#e9b96e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></g></svg><div class="slip"><p>${S.fc.t}</p><small>Lucky number ${S.fc.n}</small></div></div><h2 style="text-align:center;margin-top:10px">Today's fortune</h2><div class="row" style="justify-content:center"><button class="btn" data-a="close">Thank you, ${T('{n}')}!</button></div>`,'fortune',true)}
 
 /* --- baby samoyed at max level --- */
-let babyX=120,babyDir=1,babyAsked=false;
+let babyX=120,babyDir=1,babyAsked=false,babySide=0,babyMv=false,babyV=0;
 function babySVG(){let g=`<rect x="86" y="96" width="380" height="420" fill="transparent"/><image href="dog.png" width="548" height="612" clip-path="url(#cBody)"/>`;
  LEGS.forEach((l,i)=>g+=`<g class="leg ${l[2]}"><image href="dog.png" width="548" height="612" clip-path="url(#cL${i})"/></g>`);
  return g+`<g transform="translate(330 150) scale(2.2)"><path d="M-14 4q14-10 28 0" stroke="#ff8fa3" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M0-6l-9-6v12zM0-6l9-6v12z" fill="#ff8fa3" stroke="${LN}" stroke-width="1.5"/></g>`}
 function drawBaby(){const on=S.lv>=MAXL&&!!S.baby;const b=$('#baby');if(!on){b.innerHTML='';return}if(!b.firstChild)b.innerHTML=`<g id="babyA"><g id="babyB">${babySVG()}</g></g>`}
-function babyTick(dt){if(!(S.lv>=MAXL&&S.baby))return;const b=$('#baby');if(!b.firstChild)drawBaby();let bt=dogX-dir*112;if(bt<40||bt>320)bt=dogX+dir*112;const s=.19,tx=Math.max(40,Math.min(320,bt)),d=tx-babyX,mv=Math.abs(d)>6&&!S.sleep;
- if(mv){babyDir=d>0?1:-1;babyX+=Math.sign(d)*Math.min(Math.abs(d),44*dt)}else babyDir=dogX>babyX?1:-1;
- $('#babyA').classList.toggle('walk',mv);b.setAttribute('transform',`translate(${f(babyX)} 268) scale(${f(babyDir*s*1000)/1000} ${s}) translate(${-PX} ${-PY})`)}
+function babyTick(dt){if(!(S.lv>=MAXL&&S.baby))return;const b=$('#baby');if(!b.firstChild)drawBaby();
+ if(!babySide)babySide=babyX<dogX?-1:1;let bt=dogX+babySide*112;if(bt<40||bt>320){babySide=-babySide;bt=dogX+babySide*112}
+ const s=.19,tx=Math.max(40,Math.min(320,bt)),d=tx-babyX,ad=Math.abs(d),mv=!S.sleep&&(babyMv?ad>2:ad>18);
+ if(mv){const want=Math.min(90,Math.max(26,ad*2.2));babyV+=(want-babyV)*Math.min(1,dt*6);babyX+=Math.sign(d)*Math.min(ad,babyV*dt);babyDir=d>0?1:-1}
+ else{babyV=0;if(Math.abs(dogX-babyX)>20)babyDir=dogX>babyX?1:-1}
+ if(mv!==babyMv){babyMv=mv;$('#babyA').classList.toggle('walk',mv)}
+ b.setAttribute('transform',`translate(${f(babyX)} 268) scale(${f(babyDir*s*1000)/1000} ${s}) translate(${-PX} ${-PY})`)}
 function babyPane(){babyAsked=true;open(`<h2>A new friend!</h2><p>Look who followed ${T('{n}')} home from the market: a tiny baby Samoyed! What will you name them?</p><form id="bf"><input class="nm" id="bfI" maxlength="14" autocomplete="off" value="Puff" aria-label="Baby's name"><div class="row"><button class="btn" type="submit">Welcome home, little one!</button></div></form>`,'baby',true,true)}
 
 /* --- first-open guide --- */
