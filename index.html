@@ -190,7 +190,8 @@ button.stampc{background:none;border:0;padding:0;cursor:pointer;font:inherit;col
 @keyframes ball{0%{transform:translate(-50%,-50%) translate(-130px,30px) scale(.8)}45%{transform:translate(-50%,-50%) translate(-60px,-80px)}85%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(-50%,-50%);opacity:0}}
 @media (prefers-reduced-motion:reduce){.flake,.bulb,#dogB,.tail,.zz text,.leg{animation:none!important}.zz text{opacity:1}}
 @media (max-width:380px){.act span{width:56px;height:56px}.name{font-size:26px}.xp{width:112px}.tab{font-size:14px}.tab svg{display:none}.act span{width:50px!important;height:50px!important}.act{font-size:13px}}
-#topmsg{cursor:pointer}#scene:not([data-scene=room]) #topmsg{display:none}
+#topmsg{cursor:pointer}#sunny{touch-action:none;cursor:grab}#sunny.drag{cursor:grabbing}
+#scene:not([data-scene=room]) #topmsg{display:none}
 .diary p{margin:0 0 10px}.diary p b{font:600 13px Fredoka,sans-serif;color:var(--soft);display:block}
 </style>
 </head>
@@ -342,7 +343,7 @@ const LINES={
 const timeLine=()=>{const h=new Date().getHours();return h<5?"Ploy, it's so late. Jet lag again? Let's both rest.":h<11?'Good morning, Ploy! Did you eat breakfast?':h<15?'Lunch time! Som tam? Steak? Both?':h>=21?"It's getting late. Rest well before your next flight.":null};
 
 /* state */
-const fresh=()=>({v:1,mess:0,name:'',last:Date.now(),st:{hunger:80,happy:80,clean:90,energy:85},xp:0,lv:1,sleep:false,fur:0,pats:0,eq:{hat:null,neck:'scarf'},sfx:true,music:true,read:[],fluff:0,strokes:0,snacks:0,tr:{},trip:null,stamps:{},spent:0,owned:[],deco:[],notes:{i:0,day:'',ann:'',read:[]},cg:{day:'',n:0},bx:{day:'',n:0},fc:{day:'',t:'',n:0},baby:'',visited:{},wk:{day:'',n:0},lastP:[],gift:{day:'',ready:false,opened:false},toys:[],giftLog:[],pc:{},ended:false,q:{day:today(),p:{},done:[]},tm:{read:[],ann:''},ck:{days:[]},met:{}});
+const fresh=()=>({v:1,mess:0,name:'',last:Date.now(),st:{hunger:80,happy:80,clean:90,energy:85},xp:0,lv:1,sleep:false,fur:0,pats:0,eq:{hat:null,neck:'scarf'},sfx:true,music:true,read:[],fluff:0,strokes:0,snacks:0,tr:{},trip:null,stamps:{},spent:0,owned:[],deco:[],notes:{i:0,day:'',ann:'',read:[]},cg:{day:'',n:0},bx:{day:'',n:0},fc:{day:'',t:'',n:0},baby:'',visited:{},wk:{day:'',n:0},lastP:[],gift:{day:'',ready:false,opened:false},toys:[],giftLog:[],pc:{},ended:false,q:{day:today(),p:{},done:[]},tm:{read:[],ann:''},ck:{days:[]},met:{},duck:null});
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r),b=fresh();return Object.assign(b,o,{st:Object.assign(b.st,o.st),eq:Object.assign(b.eq,o.eq),q:Object.assign(b.q,o.q),notes:Object.assign(b.notes,o.notes||{})})}}catch(e){}return null}
 let canStore=false;try{localStorage.setItem(KEY+'-t','1');canStore=localStorage.getItem(KEY+'-t')==='1';localStorage.removeItem(KEY+'-t')}catch(e){}
 let resetting=false;
@@ -1004,11 +1005,12 @@ function rollGift(){if(!S.name||S.gift.day===today())return;const firstDay=!S.gi
 function drawWall(){const got=CITIES.filter(c=>S.stamps[c.id]);$('#stampwall').innerHTML=got.slice(0,12).map((c,i)=>{const x=210+(i%6)*22,y=86+Math.floor(i/6)*27,r=((i*37)%7)-3;return`<g transform="rotate(${r} ${x+9.5} ${y+11.5})"><rect x="${x+8}" y="${y-2}" width="4" height="4" rx="1" fill="#d8344a" opacity=".85"/>${stampSVG(c,1).replace('<svg viewBox="0 0 100 124" class="stp" aria-hidden="true">',`<svg x="${x}" y="${y}" width="19" height="23.5" viewBox="0 0 100 124">`)}</g>`}).join('')}
 function drawHome(){rollGift();drawWall();
  $('#gift').innerHTML=giftReady()?`<g transform="translate(124 252)"><g class="notebob"><circle r="20" fill="transparent"/><rect x="-15" y="-10" width="30" height="22" rx="2" fill="#ffd23f" stroke="${INK}" stroke-width="2"/><rect x="-17" y="-16" width="34" height="8" rx="2" fill="#ffe36e" stroke="${INK}" stroke-width="2"/><rect x="-3" y="-16" width="6" height="28" fill="#d8344a"/><path d="M0-16q-10-10-12-2q2 4 12 2q10-10 12-2q-2 4-12 2" fill="#d8344a" stroke="${INK}" stroke-width="1.5"/></g></g>`:'';
- $('#sunny').innerHTML=toyOut==='duck'?'':`<g transform="translate(86 266) scale(1.05)"><ellipse cx="0" cy="12" rx="13" ry="3" fill="#000" opacity=".12"/><circle r="22" fill="transparent"/>${toyArt('duck')}</g>`;
+ $('#sunny').innerHTML=toyOut==='duck'?'':`<g id="duckG" transform="translate(${duckPos().join(' ')}) scale(1.05)"><ellipse cx="0" cy="12" rx="13" ry="3" fill="#000" opacity=".12"/><circle r="22" fill="transparent"/>${toyArt('duck')}</g>`;
  const spots=[[300,286],[330,272],[262,290],[226,292],[344,290],[150,292],[56,292]];
  $('#toys').innerHTML=S.toys.slice(0,7).map((t,i)=>t===toyOut?'':`<g class="toy" data-t="${t}" transform="translate(${spots[i][0]} ${spots[i][1]}) scale(.8)"><circle r="20" fill="transparent"/>${toyArt(t)}</g>`).join('')}
 const TSPOT=[[300,286],[330,272],[262,290],[226,292],[344,290],[150,292],[56,292]];
-const toyPos=id=>id==='duck'?[86,266]:TSPOT[Math.max(0,S.toys.indexOf(id))];
+const duckPos=()=>S.duck||[86,266];
+const toyPos=id=>id==='duck'?duckPos():TSPOT[Math.max(0,S.toys.indexOf(id))];
 const toyName=id=>id==='duck'?'Sunny':(TOYS.find(t=>t.id===id)||{name:'toy'}).name.toLowerCase();
 function openGift(){if(!giftReady())return;const left=TOYS.filter(t=>!S.toys.includes(t.id)),toy=pick(left.length?left:TOYS),note=T(pick(GIFTNOTE));S.gift.opened=true;if(!S.toys.includes(toy.id))S.toys.push(toy.id);S.giftLog.push({t:toy.id,note});
  sfx('level');save();drawHome();open(`<div class="giftbox"><svg viewBox="-40 -40 80 80" class="gb"><g class="lid"><rect x="-22" y="-14" width="44" height="10" rx="2" fill="#ffe36e" stroke="${INK}" stroke-width="2"/><rect x="-3" y="-14" width="6" height="10" fill="#d8344a"/></g><g class="toyup">${toyArt(toy.id)}</g><rect x="-20" y="-4" width="40" height="30" rx="2" fill="#ffd23f" stroke="${INK}" stroke-width="2"/><rect x="-3" y="-4" width="6" height="30" fill="#d8344a"/></svg></div><h2 style="text-align:center">A mystery gift!</h2><p style="text-align:center">Someone left a box by the door. Inside: <b>${toy.name}</b>!</p><div class="hand">${note}<br><span>— Top</span></div><div class="row" style="justify-content:center"><button class="btn" data-a="close">Thank you, Top!</button></div>`,'gift',true);
@@ -1130,6 +1132,18 @@ function ckHTML(){const n=S.ck.days.length,w=n%7===0&&n?7:n%7;
 /* --- visitors book --- */
 function visitorsHTML(){const met=FRIENDS.filter(d=>S.met[d.name]).length;
  return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">Visitors · ${met}/${FRIENDS.length}</p><div class="list">${FRIENDS.map(d=>{const m=S.met[d.name];return`<div class="env"><svg viewBox="-62 -78 124 82" width="44" height="30" aria-hidden="true"${m?'':' style="filter:brightness(0);opacity:.18"'}>${friendSVG(d.b)}</svg><div><b>${m?d.name+' the '+d.breed:'???'}</b><small>${m?'Visited ×'+m:d.rare?'A rare visitor. Keep checking in!':'Not met yet'}${d.rare&&m?' · rare':''}</small></div><span></span></div>`}).join('')}</div>`}
+
+/* --- drag Sunny the duck --- */
+let dk=null;
+function duckInit(){const sv=$('#scene');
+ sv.addEventListener('pointerdown',e=>{if(!e.target.closest('#sunny')||toyOut==='duck'||fetching)return;dk={x:e.clientX,y:e.clientY,m:false};e.preventDefault()});
+ window.addEventListener('pointermove',e=>{if(!dk)return;if(!dk.m){if(Math.hypot(e.clientX-dk.x,e.clientY-dk.y)<8)return;dk.m=true;$('#sunny').classList.add('drag');sfx('squeak')}
+  const p=scenePt(e),x=Math.max(18,Math.min(342,p.x)),y=Math.max(236,Math.min(278,p.y+10));S.duck=[Math.round(x),Math.round(y)];
+  const g=$('#duckG');if(g)g.setAttribute('transform',`translate(${x} ${y-8}) scale(1.25) rotate(${f(Math.sin(Date.now()/90)*8)})`)});
+ const end=()=>{if(!dk)return;const m=dk.m;dk=null;if(!m)return;noClick=true;setTimeout(()=>noClick=false,350);$('#sunny').classList.remove('drag');drawHome();sfx('squeak');save();
+  if(!S.sleep&&!paneKind&&Math.random()<.4)setTimeout(()=>say(pick(['Hey! Where is Sunny going?','Sunny likes it there!','Ooh, a new spot for Sunny!'])),200)};
+ window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end)}
+duckInit();
 
 /* start */
 buildScene();marketHTML=$('#back').innerHTML;setScene('room');applyTime();setInterval(applyTime,60000);drawDeco();brushInit();
