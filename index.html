@@ -55,6 +55,9 @@ button{font-family:inherit;color:var(--ink)}
 .snd button{width:40px;height:40px;border-radius:50%;border:2.5px solid var(--ink);background:var(--cream);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:0 2px 0 var(--ink)}
 .snd button:focus-visible{outline:3px solid var(--berry);outline-offset:2px}
 .snd svg{width:20px;height:20px}
+.bk{width:100%;min-height:110px;font:500 13px/1.35 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:14px;border:3px solid var(--ink);background:#fff;color:var(--ink);word-break:break-all;resize:vertical}
+.howto{margin:8px 0 4px;padding-left:22px}.howto li{margin:6px 0}
+.lnk{background:none;border:0;padding:6px;margin:4px auto 0;display:block;font:600 14px Fredoka,sans-serif;color:var(--soft);text-decoration:underline;cursor:pointer}
 .snd .x{display:none}.snd .off{opacity:.55}.snd .off .x{display:block}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;margin:18px 6px 2px}
 .st{display:grid;grid-template-columns:24px minmax(0,1fr);gap:3px 8px;align-items:center}
@@ -211,7 +214,7 @@ button.stampc{background:none;border:0;padding:0;cursor:pointer;font:inherit;col
       <button class="name" id="nm" data-a="rename" title="Rename">Samoyed</button>
       <div class="lv" id="lv">Puppy · Lv 1</div>
     </div>
-    <div class="xp"><div class="snd"><button id="sndM" data-a="snd" data-k="music" aria-label="Music"><svg viewBox="0 0 24 24"><path d="M9 17V5l10-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="2.8" fill="currentColor"/><circle cx="16.5" cy="15" r="2.8" fill="currentColor"/><path class="x" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button id="sndS" data-a="snd" data-k="sfx" aria-label="Sound effects"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="x" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button></div><div class="bar" id="xpb"><i></i></div><div class="xpt" id="xpt">0 / 30 XP</div></div>
+    <div class="xp"><div class="snd"><button id="sndM" data-a="snd" data-k="music" aria-label="Music"><svg viewBox="0 0 24 24"><path d="M9 17V5l10-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="2.8" fill="currentColor"/><circle cx="16.5" cy="15" r="2.8" fill="currentColor"/><path class="x" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button id="sndS" data-a="snd" data-k="sfx" aria-label="Sound effects"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path class="x" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button><button id="bkB" data-a="backup" aria-label="Backup"><svg viewBox="0 0 24 24"><path d="M12 3.5v10.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button></div><div class="bar" id="xpb"><i></i></div><div class="xpt" id="xpt">0 / 30 XP</div></div>
   </div>
 
   <div class="screen">
@@ -653,7 +656,7 @@ function closetPane(){const sec=(slot,lab)=>`<p style="font:600 15px Fredoka,san
 function lettersPane(){open(`<h2>Letters</h2><p class="sub">New letters arrive as ${T('{n}')} grows up.</p><div class="list">${LETTERS.map((l,i)=>{const u=S.lv>=l.lv,r=S.read.includes(i);return`<div class="env">${ico(u?(r?'envOpen':'env'):'lock')}<div><b>${u?l.title:'Sealed letter'}</b><small>${u?(r?'Read':'New!'):'Arrives at level '+l.lv}</small></div>${u?`<button class="btn sm" data-a="read" data-i="${i}">Open</button>`:''}</div>`}).join('')}</div>${S.notes.read.length?`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">Daily notes</p><div class="list">${S.notes.read.map(i=>`<div class="env">${ico('envOpen')}<div><b>Note #${i+1}</b><small>${DAILY[i].slice(0,38)}…</small></div><button class="btn sm" data-a="note" data-i="${i}">Open</button></div>`).join('')}</div>`:''}${tmListHTML()}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'letters')}
 function readLetter(i){const l=LETTERS[i];if(!l||S.lv<l.lv)return;if(l.lv===MAXL)return endLetter();if(!S.read.includes(i))S.read.push(i);sfx('letter');save();locked=false;
  open(`<div class="paper"><p>Dear Ploy,</p>${l.p.map(x=>`<p>${T(x)}</p>`).join('')}<p class="sig">${T('— '+l.from)}</p></div><div class="row"><button class="btn ghost" data-a="letters">All letters</button><button class="btn" data-a="close">Close</button></div>`,'letter',true);render()}
-function namePane(firstTime){open(`<h2>${firstTime?'Welcome home, Ploy!':'Rename your pup'}</h2><p>${firstTime?'Welcome home from Germany, Ploy! A little Samoyed followed the Christmas market lights all the way home with you. What will you name them?':'Pick a new name.'}</p><form id="nf"><input class="nm" id="nmI" maxlength="14" autocomplete="off" value="${firstTime?'Mochi':S.name}" aria-label="Pup's name"><div class="row">${firstTime?'':'<button type="button" class="btn ghost" data-a="close">Cancel</button>'}<button class="btn" type="submit">${firstTime?"That's the name!":'Save'}</button></div></form>`,'name',true,firstTime)}
+function namePane(firstTime){open(`<h2>${firstTime?'Welcome home, Ploy!':'Rename your pup'}</h2><p>${firstTime?'Welcome home from Germany, Ploy! A little Samoyed followed the Christmas market lights all the way home with you. What will you name them?':'Pick a new name.'}</p><form id="nf"><input class="nm" id="nmI" maxlength="14" autocomplete="off" value="${firstTime?'Mochi':S.name}" aria-label="Pup's name"><div class="row">${firstTime?'':'<button type="button" class="btn ghost" data-a="close">Cancel</button>'}<button class="btn" type="submit">${firstTime?"That's the name!":'Save'}</button></div>${firstTime?'<button type="button" class="lnk" data-a="backup">I have a backup code</button>':''}</form>`,'name',true,firstTime)}
 
 /* ===== new features ===== */
 const CITIES=[
@@ -1001,7 +1004,7 @@ function startWalk(){if(blockedAsleep())return;if(PLACES[scene])return goHome();
   const s=S.st;s.happy=clamp(s.happy+20);s.energy=clamp(s.energy-6,5);s.hunger=clamp(s.hunger-5,5);if(S.wk.day!==today())S.wk={day:today(),n:0};if(S.wk.n<2){S.wk.n++;gain(10)}prog('play');
   walk={id,found:false};clearTimeout(walkT);walkT=setTimeout(()=>{if(PLACES[scene]){say("That was fun! Let's go home.",3000);setTimeout(goHome,2500)}},180000);
   setTimeout(()=>{if(walk&&walk.id===id&&!walk.found){walk.found=true;S.fur+=5;sfx('coin');hearts(3);say(`Look, Ploy! I found ${PLACES[id].find}! (+5 fur)`,4500);render();save()}},rnd(14000,24000));
-  if(!S.visited[id]){S.visited[id]=1;setTimeout(()=>{if(scene===id)snap(true,PLACES[id].name)},5200)}
+  if(!S.visited[id])S.visited[id]=1;
   render();save()}),900)}
 function goHome(){clearTimeout(walkT);walk=null;fadeTo(()=>{setScene('room');runTo(180,-60,()=>say(pick(['Home sweet home.','That was the best walk ever!','My paws are happy now.'])),false);drawHome()});save()}
 
@@ -1070,7 +1073,7 @@ function render(){const s=S.st,st=stageOf(S.lv);
 /* events */
 $('#i-feed').innerHTML=ico('bowl');$('#i-play').innerHTML=ico('ball');$('#i-bath').innerHTML=ico('bubbles');
 $('#i-q').innerHTML=ico('quest');$('#i-c').innerHTML=ico('hanger');$('#i-l').innerHTML=ico('env');$('#i-s').innerHTML=ico('bag');$('#i-st').innerHTML=ico('stampI');$('#i-a').innerHTML=ico('camera');$('#i-fly').innerHTML=ico('fly');$('#i-walk').innerHTML=ico('walk');$('#brushc').innerHTML=sz('brush',34);
-const ACT={tm:d=>readTM(d.id),walk:startWalk,postcard:d=>postcardPane(d.id,!!d.new),ending,endletter:endLetter,credits,guide:d=>guidePane(+d.p),guidedone:()=>{locked=false;close();welcomeSeq()},help:()=>guidePane(0),feed:()=>S.sleep?blockedAsleep():foodPane(),eat:d=>eat(d.id),play:playPane,fetch:()=>{close();fetchGame()},catch:catchPane,cgstop:()=>{if(CG){CG.t=99}},tricks:trickPane,toybox:toyBox,toy:d=>playToy(d.t),trick:d=>doTrick(d.id),bath,sleep,
+const ACT={backup:backupPane,bkcopy:bkCopy,bkshare:()=>{const t=$('#bkOut');if(t)navigator.share({text:t.value}).catch(()=>{})},bkrestore:bkRestore,bkback:()=>{locked=false;namePane(true)},homeskip:()=>{locked=false;namePane(true)},homehow:()=>{const was=!S.name;locked=false;open(`<h2>Add to Home Screen</h2>${howToHTML()}<div class="row"><button class="btn ghost" data-a="${was?'bkback':'backup'}">Back</button></div>`,'home',true,was)},tm:d=>readTM(d.id),walk:startWalk,postcard:d=>postcardPane(d.id,!!d.new),ending,endletter:endLetter,credits,guide:d=>guidePane(+d.p),guidedone:()=>{locked=false;close();welcomeSeq()},help:()=>guidePane(0),feed:()=>S.sleep?blockedAsleep():foodPane(),eat:d=>eat(d.id),play:playPane,fetch:()=>{close();fetchGame()},catch:catchPane,cgstop:()=>{if(CG){CG.t=99}},tricks:trickPane,toybox:toyBox,toy:d=>playToy(d.t),trick:d=>doTrick(d.id),bath,sleep,
  fly:flyPane,depart:d=>depart(d.id),land,stamps:stampPane,shop:shopPane,buy:d=>buy(d.id),place:d=>{const i=S.deco.indexOf(d.id);if(i>=0)S.deco.splice(i,1);else S.deco.push(d.id);drawDeco();shopPane()},album:albumPane,snap,photo:d=>photoPane(+d.i),delphoto:d=>{ALB.splice(+d.i,1);saveAlb();albumPane()},note:d=>readNote(+d.i),quests:questPane,closet:closetPane,letters:()=>{locked=false;lettersPane()},
  close:()=>{locked=false;close();if(window._pxp&&paneKind===''){const x=window._pxp;window._pxp=0;setTimeout(()=>gain(x),600)}if(S.lv>=MAXL&&S.ended&&!S.baby&&!babyAsked)setTimeout(babyPane,400)},snd:d=>{S[d.k]=!S[d.k];if(d.k==='music'){unlock();musicLevel()}else if(S.sfx)sfx('tap');drawSound();save()},rename:()=>namePane(false),read:d=>readLetter(+d.i),
  claim:d=>{const q=QUESTS.find(x=>x.id===d.id);if(!q||S.q.done.includes(q.id)||(S.q.p[q.id]||0)<q.g)return;S.q.done.push(q.id);sfx('coin');toast(`+${q.xp} XP`);const lv=S.lv;gain(q.xp);if(S.lv===lv)questPane();save()},
@@ -1162,13 +1165,42 @@ function duckInit(){const sv=$('#scene');
  window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end)}
 duckInit();
 
+
+/* --- home screen + backup --- */
+const UA=navigator.userAgent,isIOS=/iPhone|iPad|iPod/.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1),isAndroid=/Android/i.test(UA),inApp=/\bLine\/|FBAN|FBAV|Instagram/i.test(UA);
+const isApp=()=>navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
+const shareIco='<svg viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H5v10h14V11h-1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>';
+function howToHTML(){
+ if(inApp)return`<p>Looks like this opened inside a chat app. Tap the menu (<b>⋯</b> or ${shareIco}) and choose <b>Open in ${isIOS?'Safari':'browser'}</b> first.</p>`;
+ if(isIOS)return`<ol class="howto"><li>Tap the Share button ${shareIco} (on newer iPhones, tap <b>⋯</b> first).</li><li>Tap <b>Add to Home Screen</b>, then <b>Add</b>.</li><li>Open the game from the new Samoyed icon.</li></ol>`;
+ return`<ol class="howto"><li>Tap <b>⋮</b> at the top right.</li><li>Tap <b>Add to Home screen</b> or <b>Install app</b>.</li><li>Open the game from the new Samoyed icon.</li></ol>`}
+function homePane(){open(`<h2>One tiny step first</h2><p>Give your new pup a home on your phone, so they stay safe even when you're away on long trips.</p>${howToHTML()}<div class="row"><button class="btn ghost" data-a="homeskip">Play here for now</button></div>`,'home',true,true)}
+const needHome=()=>(isIOS||isAndroid)&&!isApp();
+const BKP='PUP1:';
+function bkCode(){const o=JSON.parse(JSON.stringify(S));return BKP+btoa(unescape(encodeURIComponent(JSON.stringify(o))))}
+function backupPane(){const has=!!S.name,code=has?bkCode():'';
+ open(`<h2>${has?'Backup':'Restore your pup'}</h2>${has?`<p class="sub">Keep this code somewhere safe, like a LINE chat with yourself or your Notes. It brings back ${T('{n}')} on any phone. Photos aren't included, so press and hold to save the ones you love.</p>
+ <textarea class="bk" id="bkOut" readonly>${code}</textarea><div class="row"><button class="btn" data-a="bkcopy">Copy code</button>${navigator.share?'<button class="btn" data-a="bkshare">Send…</button>':''}</div>
+ <p style="font:600 15px Fredoka,sans-serif;margin:18px 0 6px">Restore from a code</p>`:`<p class="sub">Paste the backup code you saved.</p>`}
+ <textarea class="bk" id="bkIn" style="min-height:70px" placeholder="PUP1:…" autocomplete="off" spellcheck="false"></textarea><div class="row"><button class="btn${has?' ghost':''}" data-a="bkrestore">Restore</button></div>
+ ${needHome()?`<button class="lnk" data-a="homehow">How to add to Home Screen</button>`:''}
+ <div class="row"><button class="btn ghost" data-a="${has?'close':'bkback'}">${has?'Close':'Back'}</button></div>`,'backup',false,!has)}
+function bkCopy(){const t=$('#bkOut');if(!t)return;const done=()=>toast('Backup code copied');
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(done,()=>{t.select();try{document.execCommand('copy');done()}catch(e){toast('Press and hold the code to copy it')}});else{t.select();try{document.execCommand('copy');done()}catch(e){toast('Press and hold the code to copy it')}}}
+function bkRestore(){const raw=(($('#bkIn')||{}).value||'').replace(/\s+/g,'');let o=null;
+ try{if(raw.startsWith(BKP))o=JSON.parse(decodeURIComponent(escape(atob(raw.slice(BKP.length)))))}catch(e){}
+ if(!o||typeof o!=='object'||!o.name||!o.st)return toast("That code doesn't look right. Copy the whole thing and try again.");
+ if(S.name&&!confirm(`Replace ${S.name} on this phone with ${o.name} from the backup?`))return;
+ o.last=Date.now();resetting=true;try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){resetting=false;return toast("Couldn't restore here.")}
+ location.replace(location.pathname+location.search)}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 /* start */
 buildScene();marketHTML=$('#back').innerHTML;setScene('room');applyTime();setInterval(applyTime,60000);drawDeco();brushInit();
 let lastT=Date.now(),gap=0;
 if(!first){gap=Date.now()-S.last;decay(Math.min(gap,72*3600e3)/3600e3)}
 resetQuests();render();drawDog(true);drawNote();drawCookie();drawBaby();drawHome();setInterval(()=>{drawNote();drawCookie();drawHome()},60000);
 if(!first&&S.name&&gap>=2*36e5){const g0=gap,wt=!!S.trip;setTimeout(()=>enqueue(()=>diaryPane(g0,wt)),2500)}
-if(first||!S.name)namePane(true);else{setTimeout(()=>{if(cookieReady()&&!paneKind)say('There is a fortune cookie on the stall for you, Ploy!')},8500);setTimeout(sayWx,14000)}if(!first&&S.name)setTimeout(()=>say(S.trip?`Ploy! Are you still in ${cityName(S.trip.c)}? I miss you.`:gap>6*3600e3?pick(LINES.wel):(timeLine()||pick(LINES.gen))),600);
+if(first||!S.name){if(needHome())homePane();else namePane(true)}else{setTimeout(()=>{if(cookieReady()&&!paneKind)say('There is a fortune cookie on the stall for you, Ploy!')},8500);setTimeout(sayWx,14000)}if(!first&&S.name)setTimeout(()=>say(S.trip?`Ploy! Are you still in ${cityName(S.trip.c)}? I miss you.`:gap>6*3600e3?pick(LINES.wel):(timeLine()||pick(LINES.gen))),600);
 hash();requestAnimationFrame(frame);
 checkIn();loadTM();setInterval(()=>{checkIn();drawTM()},60000);setInterval(loadTM,20*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadTM();checkIn()}});
 if(!canStore)setTimeout(()=>toast("This app can't save progress. Open the link in Safari or Chrome."),first?6000:1500);
