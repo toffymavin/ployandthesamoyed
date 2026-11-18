@@ -1107,11 +1107,11 @@ function loadTM(){fetch('messages.json?t='+Date.now(),{cache:'no-store'}).then(r
  drawTM();const n=tmNew();if(n.length&&S.name&&S.tm.ann!==n[0].id){S.tm.ann=n[0].id;save();setTimeout(()=>{if(!S.sleep)say('Ploy! A paper plane just flew in. I think it\'s from Top!',4500);sfx('letter')},3500)}}).catch(()=>{})}
 function drawTM(){const on=S.name&&tmNew().length>0;$('#topmsg').innerHTML=on?`<g transform="translate(244 92) rotate(-8)"><g class="notebob"><circle r="22" fill="transparent"/><path d="M-17 3L17-11L3 13L-1 5Z" fill="#fff8e1" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-1 5L17-11" stroke="${INK}" stroke-width="1.6"/><path d="M-1 5L-4 11L3 13" fill="#efe2bf" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11s-3.2-1.7-3.2-3.8a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2.1-3.2 3.8-3.2 3.8z" fill="#d8344a"/></g></g>`:''}
 function readTM(id){const m=TM.find(x=>x.id===id);if(!m)return;const first=!S.tm.read.includes(id);if(first){S.tm.read.push(id);gain(3)}drawTM();sfx('letter');save();locked=false;
- const body=String(m.text).split(/\n+/).map(x=>`<p>${esc(x)}</p>`).join('');
- open(`<div class="paper">${m.title?`<p><b>${esc(m.title)}</b></p>`:'<p>Dear Ploy,</p>'}${body}<p class="sig">— ${esc(m.from||'Top')}</p></div><div class="row"><button class="btn ghost" data-a="letters">All letters</button><button class="btn" data-a="close">Close</button></div>`,'letter',true);
+ const body=T(String(m.text)).split(/\n+/).map(x=>`<p>${esc(x)}</p>`).join('');
+ open(`<div class="paper">${m.title?`<p><b>${esc(T(String(m.title)))}</b></p>`:'<p>Dear Ploy,</p>'}${body}<p class="sig">— ${esc(m.from||'Top')}</p></div><div class="row"><button class="btn ghost" data-a="letters">All letters</button><button class="btn" data-a="close">Close</button></div>`,'letter',true);
  if(first)setTimeout(()=>{if(!S.sleep){hearts(3);joy(1500)}},400)}
 function tmListHTML(){const r=TM.filter(m=>S.tm.read.includes(m.id)).reverse();if(!r.length)return'';
- return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">From Top</p><div class="list">${r.map(m=>`<div class="env">${ico('envOpen')}<div><b>${esc(m.title||'Paper plane')}</b><small>${esc(String(m.text).slice(0,38))}…</small></div><button class="btn sm" data-a="tm" data-id="${esc(m.id)}">Open</button></div>`).join('')}</div>`}
+ return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">From Top</p><div class="list">${r.map(m=>`<div class="env">${ico('envOpen')}<div><b>${esc(T(String(m.title||'Paper plane')))}</b><small>${esc(T(String(m.text)).slice(0,38))}…</small></div><button class="btn sm" data-a="tm" data-id="${esc(m.id)}">Open</button></div>`).join('')}</div>`}
 
 /* --- away diary --- */
 const DIARY={
