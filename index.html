@@ -440,17 +440,25 @@ function messFur(){const m=S.mess||0;if(m<20)return'';const n=Math.min(MESS.leng
  return s}
 let carryBall=false,fetching=false,carryToy=null,toyOut=null;
 let sig='',dogX=180,dir=1,targetX=null,nextWalk=Date.now()+4000,busyUntil=0,lastF=0;
-function place(){const s=dims.s*(1+(S.fluff||0)*.0008);$('#dogW').setAttribute('transform',`translate(${f(dogX)} 266) scale(${f(dir*s*1000)/1000} ${s}) translate(${-PX} ${-PY})`);$('#shadow').setAttribute('cx',f(dogX))}
+/* depth: dogZ 0 = front (feet at y 266), 1 = far back, <0 = a little closer to the glass */
+let dogZ=0,targetZ=0,dogBehind=false;
+const BACKY={room:226,cabin:222,gate:240,bangkok:238,beach:236,sakura:220,paris:226,chalet:228,loykrathong:226,market:232};
+const ZMIN=-.22,zSpan=()=>266-(BACKY[scene]||228),zK=z=>1-.42*z,zY=z=>266-z*zSpan(),dZk=()=>zK(dogZ),fy=()=>zY(dogZ);
+function layer(){const back=fy()<255;if(back===dogBehind)return;dogBehind=back;const w=$('#dogW'),p=w.parentNode;p.insertBefore(w,back?$('#fur'):$('#baby'))}
+function place(){const s=dims.s*(1+(S.fluff||0)*.0008)*dZk(),y=fy();$('#dogW').setAttribute('transform',`translate(${f(dogX)} ${f(y)}) scale(${f(dir*s*1000)/1000} ${f(s*1000)/1000}) translate(${-PX} ${-PY})`);
+ const sh=$('#shadow');sh.setAttribute('cx',f(dogX));sh.setAttribute('cy',f(y+2));sh.setAttribute('rx',f(170*dims.s*dZk()));sh.setAttribute('ry',f(8*dZk()));layer()}
 function drawDog(force){const s=[S.lv,mood(),S.eq.hat,S.eq.neck,dirtN(),Math.round(dirtT()*20),S.st.clean<55?Math.round(S.st.clean/8):9,Math.round((S.mess||0)/6),carryBall,carryToy,carry].join('|');if(!force&&s===sig)return;sig=s;
- $('#dogB').innerHTML=dog();place();$('#shadow').setAttribute('rx',f(170*dims.s));$('#dogA').classList.toggle('zzz',S.sleep)}
+ $('#dogB').innerHTML=dog();place();$('#dogA').classList.toggle('zzz',S.sleep)}
 function stopWalk(ms){targetX=null;busyUntil=Date.now()+ms;nextWalk=busyUntil+rnd(1500,4000)}
 function frame(t){const dt=lastF?Math.min(.05,(t-lastF)/1000):0;lastF=t;const now=Date.now(),can=!S.sleep&&!!S.name&&now>busyUntil,mg=210*dims.s;
- if(targetX===null){if(can&&now>nextWalk){const tx=rnd(mg,360-mg);if(Math.abs(tx-dogX)>30){targetX=tx;dir=tx>dogX?1:-1}else nextWalk=now+2000}}
- else if(!can)targetX=null;
- else{const sp=(runFast?120:S.st.energy<25?20:34)*dt;if(Math.abs(targetX-dogX)<=sp){dogX=targetX;targetX=null;runFast=false;nextWalk=now+rnd(2500,7000);if(arriveCb){const cb=arriveCb;arriveCb=null;setTimeout(cb,50)}}else dogX+=Math.sign(targetX-dogX)*sp}
+ if(targetX===null){if(can&&now>nextWalk){const tz=Math.random()<.3?0:f(rnd(ZMIN,1)),m=mg*zK(tz),tx=rnd(m,360-m);if(Math.hypot(tx-dogX,(tz-dogZ)*zSpan()*2)>30){targetX=tx;targetZ=tz;if(Math.abs(tx-dogX)>6)dir=tx>dogX?1:-1}else nextWalk=now+2000}}
+ else if(!can){targetX=null;targetZ=dogZ}
+ else{const sp=(runFast?120:S.st.energy<25?20:34)*dt*(.55+.45*dZk()),ex=targetX-dogX,ey=(targetZ-dogZ)*zSpan()*2,d=Math.hypot(ex,ey);
+  if(d<=sp){dogX=targetX;dogZ=targetZ;targetX=null;runFast=false;nextWalk=now+rnd(2500,7000);if(arriveCb){const cb=arriveCb;arriveCb=null;setTimeout(cb,50)}}
+  else{dogX+=ex/d*sp;dogZ+=ey/d*sp/(zSpan()*2)}}
  friendTick(dt,now);babyTick(dt);placeSay();$('#dogA').classList.toggle('walk',targetX!==null);$('#dogA').classList.toggle('run',runFast&&targetX!==null);if(targetX!==null&&t-(window._st||0)>250){window._st=t;sfx('step')}place();requestAnimationFrame(frame)}
-const dogPX=()=>(dogX+dir*42*dims.s)/360*100;
-const headY=()=>(266+(200-PY)*dims.s)/300*100, mouthY=()=>(266+(262-PY)*dims.s)/300*100;
+const dogPX=()=>(dogX+dir*42*dims.s*dZk())/360*100;
+const headY=()=>(fy()+(200-PY)*dims.s*dZk())/300*100, mouthY=()=>(fy()+(262-PY)*dims.s*dZk())/300*100;
 
 /* scene */
 function stall(x,label,sw,c){let s=`<g transform="translate(${x} 0)"><rect x="6" y="138" width="98" height="80" fill="#ffcf6b"/><rect x="6" y="138" width="98" height="80" fill="#b8540f" opacity=".25"/>`;
@@ -582,14 +590,14 @@ function bath(){if(blockedAsleep())return;const s=S.st;
  setTimeout(()=>joy(1800),900);gain(5);prog('bath');say(pick(LINES.bath));render()}
 function sleep(){const s=S.st;
  if(S.sleep){S.sleep=false;sfx('wake');say('*big stretch* Good morning… is it morning?')}
- else{if(s.energy>=90){say("I'm not sleepy yet! Let's play!");return}S.sleep=true;dir=1;targetX=null;if(S.deco.includes('cushion')){dogX=270;place()}sfx('sleep');say('Goodnight, Ploy. Wake me if you need cuddles.')}
+ else{if(s.energy>=90){say("I'm not sleepy yet! Let's play!");return}S.sleep=true;dir=1;targetX=null;if(S.deco.includes('cushion')){dogX=270;dogZ=0;place()}sfx('sleep');say('Goodnight, Ploy. Wake me if you need cuddles.')}
  drawDog(true);render();musicLevel();save()}
 
 function fetchGame(){if(blockedAsleep())return;const s=S.st;if(fetching)return;
  if(s.energy<15){say('Too sleepy to play… nap first?');return}if(s.hunger<15){say("Too hungry to play… snack first?");return}
  fetching=true;const sc=dims.s,mo=42*sc,mg=210*sc,sx=dogX<180?Math.max(mg,85):Math.min(360-mg,275);
  say(pick(['Throw it! Throw it!','Ready, Ploy!','Ball! Ball! Ball!']),1300);
- if(Math.abs(dogX-sx)>15)runTo(sx,dogX,()=>throwBall(sx),false);else{stopWalk(4000);throwBall(sx)}}
+ if(Math.abs(dogX-sx)>15||dogZ>.05)runTo(sx,dogX,()=>throwBall(sx),false);else{stopWalk(4000);throwBall(sx)}}
 function throwBall(sx){const s=S.st,sc=dims.s,mo=42*sc,bx=sx<180?rnd(292,318):rnd(42,68),d=bx>dogX?1:-1;dir=d;place();stopWalk(5000);anim('joy',900);
  const el=$('#fball'),x0=sx<180?150:210,y0=320,dur=1500,t0=performance.now()+500;sfx('tap');
  const step=now=>{const t=(now-t0)/dur;if(t<0){requestAnimationFrame(step);return}let x,y,k;
@@ -617,7 +625,7 @@ function playToy(id){close();if(blockedAsleep())return;if(fetching)return;if(sce
   setTimeout(()=>{carryToy=null;toyOut=null;drawDog(true);drawHome();fetching=false;stopWalk(1500);
    say(pick(id==='duck'?['Sunny is my best friend!','*squeak* Sunny says hi, Ploy!','I will never share Sunny. Except with you.']:[`I love my ${nm}!`,'*squeak squeak*',`Best ${nm} ever!`,'Thank you for my toy!']));
    s.happy=clamp(s.happy+12);s.energy=clamp(s.energy-5,5);if(!S.ty||S.ty.day!==today())S.ty={day:today(),n:0};if(S.ty.n<5){S.ty.n++;gain(3)}prog('play');render();save()},3700)};
- if(Math.abs(dogX-stop)<4){stopWalk(500);pickUp()}else runTo(stop,dogX,pickUp,true);
+ if(Math.abs(dogX-stop)<4&&dogZ<.05){stopWalk(500);pickUp()}else runTo(stop,dogX,pickUp,true);
  setTimeout(()=>{if(fetching&&!carryToy&&toyOut===null&&targetX===null)fetching=false},12000)}
 function toyBox(){if(blockedAsleep())return;const all=['duck',...S.toys];open(`<h2>Toy box</h2><p class="sub">Pick a toy for ${T('{n}')}. You can also tap a toy on the floor.</p><div class="tbox">${all.map(t=>`<button class="item" data-a="toy" data-t="${t}"><svg viewBox="-17 -17 34 34">${toyArt(t)}</svg>${t==='duck'?'Sunny':toyName(t).replace(/^./,c=>c.toUpperCase())}</button>`).join('')}</div>${S.toys.length?'':`<p class="sub" style="margin-top:12px!important">More toys show up in mystery gifts by the door.</p>`}<div class="row"><button class="btn ghost" data-a="play">Back</button><button class="btn ghost" data-a="close">Close</button></div>`,'toybox')}
 function playPane(){if(blockedAsleep())return;open(`<h2>Play time</h2><p class="sub">Tip: drag your finger over ${T('{n}')} to brush the fluff.</p><div class="list">
@@ -728,7 +736,7 @@ function friendSVG(b){const C={shiba:{c:'#e39a52',d:'#c97c35',w:'#fff6ea',ear:'p
  return s}
 let fr=null,nextFriend=Date.now()+rnd(90e3,180e3);
 function startFriend(){const rare=Math.random()<.08,d=pick(FRIENDS.filter(x=>!!x.rare===rare)),fromRight=dogX<180,tx=Math.max(40,Math.min(320,dogX+(fromRight?125:-125)));
- fr={d,x:fromRight?410:-50,tx,dir:fromRight?-1:1,state:'in',until:0};$('#friend').innerHTML=`<g id="frB">${friendSVG(d.b)}</g>`}
+ fr={d,x:fromRight?410:-50,tx,dir:fromRight?-1:1,state:'in',until:0};if(dogZ>.1)runTo(dogX,dogX,null,false);$('#friend').innerHTML=`<g id="frB">${friendSVG(d.b)}</g>`}
 function friendTick(dt,now){if(!fr){if(now>nextFriend){nextFriend=now+rnd(150e3,320e3);if(!S.sleep&&!paneKind&&S.name&&!CG)startFriend()}return}
  const g=$('#friend');
  if(fr.state==='in'){const sp=40*dt;if(Math.abs(fr.tx-fr.x)<=sp){fr.x=fr.tx;fr.state='stay';fr.until=now+6500;stopWalk(7000);dir=fr.x>dogX?1:-1;
@@ -901,10 +909,10 @@ function stampSVG(c,v){const ink=v?c.col:'#d8ccaa';let perf='';for(let x=4;x<=96
 
 /* --- speech bubble beside the mouth --- */
 let saySide='r';
-function placeSay(){const e=$('#say');if(!e||!e.classList.contains('on'))return;const s=dims.s,mx=dogPX(),my=mouthY(),gap=95*s/360*100;
+function placeSay(){const e=$('#say');if(!e||!e.classList.contains('on'))return;const s=dims.s*dZk(),mx=dogPX(),my=mouthY(),gap=95*s/360*100;
  const rR=100-(mx+gap)-2,rL=mx-gap-2;if(saySide==='t'||(saySide==='r'?rR:rL)<26)saySide=rR>=rL?'r':'l';const room=saySide==='r'?rR:rL;let side=room<26?'t':saySide;
  e.classList.remove('r','l','t');e.classList.add(side);
- if(side==='t'){e.style.maxWidth='78%';e.style.left=Math.max(20,Math.min(80,mx))+'%';e.style.top=Math.max(4,(266+(92-PY)*s)/300*100)+'%';e.style.setProperty('--tx','-50%');e.style.setProperty('--ty','-100%')}
+ if(side==='t'){e.style.maxWidth='78%';e.style.left=Math.max(20,Math.min(80,mx))+'%';e.style.top=Math.max(4,(fy()+(92-PY)*s)/300*100)+'%';e.style.setProperty('--tx','-50%');e.style.setProperty('--ty','-100%')}
  else{e.style.maxWidth=room+'%';e.style.top=(my-1)+'%';e.style.left=(side==='r'?mx+gap:mx-gap)+'%';e.style.setProperty('--tx',side==='r'?'0%':'-100%');e.style.setProperty('--ty','-50%')}}
 
 /* --- weather where Ploy is --- */
@@ -934,7 +942,7 @@ function openCookie(){if(!cookieReady())return;const pool=(S.trip||Math.random()
 function showFortune(){open(`<div class="fc"><svg viewBox="0 0 120 70" class="fcck"><g class="fl1"><path d="M10 50Q6 20 40 18Q50 30 46 52Q30 44 10 50Z" fill="#e9b96e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></g><g class="fl2"><path d="M110 50Q114 20 80 18Q70 30 74 52Q90 44 110 50Z" fill="#e9b96e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></g></svg><div class="slip"><p>${S.fc.t}</p><small>Lucky number ${S.fc.n}</small></div></div><h2 style="text-align:center;margin-top:10px">Today's fortune</h2><div class="row" style="justify-content:center"><button class="btn" data-a="close">Thank you, ${T('{n}')}!</button></div>`,'fortune',true)}
 
 /* --- baby samoyed at max level --- */
-let babyX=120,babyDir=1,babyAsked=false,babySide=0,babyMv=false,babyV=0,babyZz=null;
+let babyX=120,babyZ=0,babyDir=1,babyAsked=false,babySide=0,babyMv=false,babyV=0,babyZz=null;
 function babySVG(){let g=`<rect x="86" y="96" width="380" height="420" fill="transparent"/><image href="dog.png" width="548" height="612" clip-path="url(#cBody)"/>`;
  LEGS.forEach((l,i)=>g+=`<g class="leg ${l[2]}"><image href="dog.png" width="548" height="612" clip-path="url(#cL${i})"/></g>`);
  return g+`<g id="bFace"></g><g id="bZ"></g><g transform="translate(330 150) scale(2.2)"><path d="M-14 4q14-10 28 0" stroke="#ff8fa3" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M0-6l-9-6v12zM0-6l9-6v12z" fill="#ff8fa3" stroke="${LN}" stroke-width="1.5"/></g>`}
@@ -946,8 +954,9 @@ function babyTick(dt){if(!(S.lv>=MAXL&&S.baby))return;const b=$('#baby');if(!b.f
  else{babyV=0;if(S.sleep)babyDir=1;else if(Math.abs(dogX-babyX)>20)babyDir=dogX>babyX?1:-1}
  if(mv!==babyMv){babyMv=mv;$('#babyA').classList.toggle('walk',mv)}
  const zz=S.sleep&&!mv;if(zz!==babyZz){babyZz=zz;$('#bFace').innerHTML=zz?face('sleep'):'';$('#bZ').innerHTML=zz?`<g class="zz" font-family="Fredoka,sans-serif" font-weight="700" fill="#fff8e1" stroke="#3a2a12" stroke-width="4" paint-order="stroke"><text x="420" y="120" font-size="64">z</text><text x="470" y="50" font-size="80" style="animation-delay:1.3s">z</text></g>`:'';$('#babyA').classList.toggle('zzz',zz)}
- const bs=$('#bshadow');bs.setAttribute('cx',f(babyX));bs.setAttribute('rx',f(170*s));
- b.setAttribute('transform',`translate(${f(babyX)} 268) scale(${f(babyDir*s*1000)/1000} ${s}) translate(${-PX} ${-PY})`)}
+ babyZ+=(dogZ-babyZ)*Math.min(1,dt*1.5);const bk=zK(babyZ),by=zY(babyZ)+2*bk,bsc=s*bk;
+ const bs=$('#bshadow');bs.setAttribute('cx',f(babyX));bs.setAttribute('cy',f(by));bs.setAttribute('rx',f(170*bsc));bs.setAttribute('ry',f(5*bk));
+ b.setAttribute('transform',`translate(${f(babyX)} ${f(by)}) scale(${f(babyDir*bsc*1000)/1000} ${f(bsc*1000)/1000}) translate(${-PX} ${-PY})`)}
 function babyPane(){babyAsked=true;open(`<h2>A new friend!</h2><p>Look who followed ${T('{n}')} home from the market: a tiny baby Samoyed! What will you name them?</p><form id="bf"><input class="nm" id="bfI" maxlength="14" autocomplete="off" value="Puff" aria-label="Baby's name"><div class="row"><button class="btn" type="submit">Welcome home, little one!</button></div></form>`,'baby',true,true)}
 
 /* --- first-open guide --- */
@@ -976,7 +985,7 @@ function setScene(id){scene=id;const sv=$('#scene');sv.dataset.scene=id;$('#back
  $('#snow').style.display=(id==='market'||id==='chalet')?'':'none';tod='';applyTime();tufts=[];drawFur();$('#sign').innerHTML='';
  $('#placec').textContent=PLACES[id]?PLACES[id].name:'';$('#placec').classList.toggle('on',!!PLACES[id]);$('#walkL').textContent=PLACES[id]?'Home':'Walkie!'}
 function fadeTo(fn){const f=$('#fade');f.classList.add('on');setTimeout(()=>{fn();setTimeout(()=>f.classList.remove('on'),80)},420)}
-function runTo(x,from,cb,fast=true){dogX=from;dir=x>from?1:-1;targetX=x;busyUntil=0;runFast=fast;arriveCb=cb;place()}
+function runTo(x,from,cb,fast=true){if(from<0||from>360)dogZ=0;dogX=from;if(x!==from)dir=x>from?1:-1;targetX=x;targetZ=0;busyUntil=0;runFast=fast;arriveCb=cb;place()}
 function startWalk(){if(blockedAsleep())return;if(PLACES[scene])return goHome();if(S.st.energy<15)return say("I'm too sleepy for a walk… nap first?");
  let id=SPECIAL[isoDay()];if(!id){const opts=Object.keys(PLACES).filter(p=>p!=='loykrathong'||Math.random()<.5).filter(p=>!S.lastP.includes(p));id=pick(opts.length?opts:Object.keys(PLACES))}
  S.lastP=[id,...S.lastP].slice(0,2);sfx('wake');say(pick(['Walkies!! Let me get my leash!','Yes! Yes! Let\'s go!','Outside? Best idea ever!']),2200);stopWalk(1500);
@@ -1019,7 +1028,7 @@ function sunnyPane(){sfx('fur');setTimeout(()=>sfx('fur'),140);open(`<div class=
 
 /* --- trips: gate send-off, pet-sitter, postcards, welcome home --- */
 const PCNOTE=['Safe flight, see you when you land.','Hope {c} was kind to you.','Did you eat something good in {c}?','Rest well today. You earned it.','Missed you around here.','Tell me everything about {c}.'];
-function departSeq(id){fadeTo(()=>{setScene('gate');dogX=170;dir=1;place();setTimeout(flyBy,900);say(`Fly safe, Ploy! I'll guard the sofa until you're back from ${cityName(id)}.`,5000)});
+function departSeq(id){fadeTo(()=>{setScene('gate');dogX=170;dogZ=0;dir=1;place();setTimeout(flyBy,900);say(`Fly safe, Ploy! I'll guard the sofa until you're back from ${cityName(id)}.`,5000)});
  setTimeout(()=>fadeTo(()=>{setScene('room');drawHome();say("Top said he'd drop by to feed me. See you soon, Ploy!",4500)}),7500)}
 function landSeq(c,hrs,firstTime){const visits=Math.max(1,Math.round(hrs/8)),bowls=visits*2,pats=20+visits*17;
  const go=()=>{setScene('room');drawHome();drawWall();runTo(180,420,()=>{anim('jump',900);hearts(6);sfx('yip');joy(3000);showSign();const b=$('#banner');b.innerHTML='Welcome home!<small>Rest well today 💛</small>';b.classList.add('on');setTimeout(()=>b.classList.remove('on'),4200);
