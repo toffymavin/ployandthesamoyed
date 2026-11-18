@@ -728,6 +728,17 @@ button {
 .bulb {
   animation: tw 2.4s ease-in-out infinite;
 }
+.wflake {
+  animation: wfall linear infinite;
+}
+@keyframes wfall {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(6px, 120px);
+  }
+}
 .tuft {
   cursor: pointer;
 }
@@ -1490,6 +1501,7 @@ button.stampc {
 }
 @media (prefers-reduced-motion: reduce) {
   .flake,
+  .wflake,
   .bulb,
   #dogB,
   .tail,
