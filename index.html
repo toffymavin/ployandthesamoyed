@@ -969,7 +969,7 @@ function startWalk(){if(blockedAsleep())return;if(PLACES[scene])return goHome();
  let id=SPECIAL[isoDay()];if(!id){const opts=Object.keys(PLACES).filter(p=>p!=='loykrathong'||Math.random()<.5).filter(p=>!S.lastP.includes(p));id=pick(opts.length?opts:Object.keys(PLACES))}
  S.lastP=[id,...S.lastP].slice(0,2);sfx('wake');say(pick(['Walkies!! Let me get my leash!','Yes! Yes! Let\'s go!','Outside? Best idea ever!']),2200);stopWalk(1500);
  setTimeout(()=>fadeTo(()=>{setScene(id);runTo(170,-60,()=>{hearts(2);say(PLACES[id].hi,4500);sfx('yip')});
-  const s=S.st;s.happy=clamp(s.happy+20);s.energy=clamp(s.energy-16,5);s.hunger=clamp(s.hunger-5,5);if(S.wk.day!==today())S.wk={day:today(),n:0};if(S.wk.n<2){S.wk.n++;gain(10)}prog('play');
+  const s=S.st;s.happy=clamp(s.happy+20);s.energy=clamp(s.energy-6,5);s.hunger=clamp(s.hunger-5,5);if(S.wk.day!==today())S.wk={day:today(),n:0};if(S.wk.n<2){S.wk.n++;gain(10)}prog('play');
   walk={id,found:false};clearTimeout(walkT);walkT=setTimeout(()=>{if(PLACES[scene]){say("That was fun! Let's go home.",3000);setTimeout(goHome,2500)}},180000);
   setTimeout(()=>{if(walk&&walk.id===id&&!walk.found){walk.found=true;S.fur+=5;sfx('coin');hearts(3);say(`Look, Ploy! I found ${PLACES[id].find}! (+5 fur)`,4500);render();save()}},rnd(14000,24000));
   if(!S.visited[id]){S.visited[id]=1;setTimeout(()=>{if(scene===id)snap(true,PLACES[id].name)},5200)}
@@ -1029,7 +1029,7 @@ const STATS=[['hunger','Full','bowl'],['happy','Happy','heart'],['clean','Clean'
 function render(){const s=S.st,st=stageOf(S.lv);
  $('#nm').textContent=S.name||'Samoyed';$('#lv').textContent=`${STAGE[st]} · Lv ${S.lv}`;
  const mx=S.lv>=MAXL;$('#xpb i').style.width=(mx?100:S.xp/need(S.lv)*100)+'%';$('#xpt').textContent=mx?'Max level':`${S.xp} / ${need(S.lv)} XP`;
- $('#stats').innerHTML=STATS.map(([k,l,ic])=>`<div class="st">${ico(ic)}<b>${l}${k==='energy'&&S.sleep&&s[k]<100?`<small style="font-weight:500;opacity:.75"> · full in ${Math.ceil((100-s[k])/150*60)} min</small>`:''}</b>`<div class="bar${s[k]<30?' low':''}" role="meter" aria-label="${l}" aria-valuenow="${Math.round(s[k])}" aria-valuemin="0" aria-valuemax="100"><i style="width:${s[k]}%"></i></div></div>`).join('');
+ $('#stats').innerHTML=STATS.map(([k,l,ic])=>`<div class="st">${ico(ic)}<b>${l}${k==='energy'&&S.sleep&&s[k]<100?`<small style="font-weight:500;opacity:.75"> · full in ${Math.ceil((100-s[k])/150*60)} min</small>`:''}</b><div class="bar${s[k]<30?' low':''}" role="meter" aria-label="${l}" aria-valuenow="${Math.round(s[k])}" aria-valuemin="0" aria-valuemax="100"><i style="width:${s[k]}%"></i></div></div>`).join('');
  $('#i-sleep').innerHTML=ico(S.sleep?'sun':'moon');$('#sleepL').textContent=S.sleep?'Wake':'Sleep';
  $('#night').setAttribute('opacity',S.sleep?.5:0);
  $('#chip').innerHTML=`${sz('tuft',18)}${furBal()}`;$('#tripc').innerHTML=S.trip?`${sz('plane',18)}Ploy is in ${cityName(S.trip.c)} · Top is pet-sitting`:'';$('#tripc').classList.toggle('on',!!S.trip);$('#flyL').textContent=S.trip?'Home':'Fly';drawSound();
