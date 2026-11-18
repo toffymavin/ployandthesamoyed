@@ -1619,6 +1619,18 @@ setInterval(()=>{if(S.sleep||paneKind||fetching||scene!=='room'||!S.name||S.trip
 setInterval(()=>{if(S.st.clean>=45||paneKind||S.trip)return;const k=S.st.clean<20?3:S.st.clean<30?2:1;for(let i=0;i<k;i++)setTimeout(()=>fxAt(`<svg width="26" height="18" viewBox="0 0 26 18"><g fill="#b9a68a" opacity=".7"><circle cx="7" cy="11" r="5"/><circle cx="14" cy="7" r="6"/><circle cx="20" cy="11" r="4.5"/></g></svg>`,dogX/3.6+rnd(-9,9),headY()+rnd(4,30),'bub',1600,rnd(-25,25)),i*260)},2600);
 }
 </script>
+<script>/* notify-ping: tells Top's phone (ntfy) when the game is opened. Max 2 pings per device. */
+(function(){try{
+var TOPIC='ploy-pup-570d5ce67573',F='ploy-samoyed-ping',ls=localStorage;
+if(/[?&]me=1/.test(location.search)){ls.setItem(F,'me');return}
+var done=ls.getItem(F);if(done==='me'||done==='back')return;
+var raw=ls.getItem('ploy-samoyed-v1'),o=null;try{o=raw&&JSON.parse(raw)}catch(e){}
+var msg,flag;
+if(o&&o.name){msg='🐶 พลอยกลับมาเล่นเกมแล้ว — น้องชื่อ '+o.name+' เลเวล '+(o.lv||1);flag='back'}
+else if(!done){msg='🐶 พลอยเปิดเกมครั้งแรกแล้ว!';flag='first'}
+else return;
+fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:msg,keepalive:true}).then(function(r){if(r.ok)ls.setItem(F,flag)}).catch(function(){});
+}catch(e){}})();</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
 </body>
 </html>
