@@ -190,6 +190,8 @@ button.stampc{background:none;border:0;padding:0;cursor:pointer;font:inherit;col
 @keyframes ball{0%{transform:translate(-50%,-50%) translate(-130px,30px) scale(.8)}45%{transform:translate(-50%,-50%) translate(-60px,-80px)}85%{transform:translate(-50%,-50%);opacity:1}100%{transform:translate(-50%,-50%);opacity:0}}
 @media (prefers-reduced-motion:reduce){.flake,.bulb,#dogB,.tail,.zz text,.leg{animation:none!important}.zz text{opacity:1}}
 @media (max-width:380px){.act span{width:56px;height:56px}.name{font-size:26px}.xp{width:112px}.tab{font-size:14px}.tab svg{display:none}.act span{width:50px!important;height:50px!important}.act{font-size:13px}}
+#topmsg{cursor:pointer}#scene:not([data-scene=room]) #topmsg{display:none}
+.diary p{margin:0 0 10px}.diary p b{font:600 13px Fredoka,sans-serif;color:var(--soft);display:block}
 </style>
 </head>
 <body>
@@ -214,7 +216,7 @@ button.stampc{background:none;border:0;padding:0;cursor:pointer;font:inherit;col
       <g id="back"></g><g id="skyfx"></g><g id="deco"></g>
       <ellipse id="shadow" cx="180" cy="268" rx="60" ry="8" fill="#0b2a20" opacity=".22"/><ellipse id="bshadow" cx="120" cy="268" rx="0" ry="5" fill="#0b2a20" opacity=".22"/>
       <g id="stampwall"></g><g id="fur"></g><g id="toys"></g><g id="sunny"></g><g id="gift"></g><g id="note"></g><g id="cookie"></g><g id="friend"></g><g id="sign"></g><g id="fball"></g>
-      <g id="dogW"><g id="dogA"><g id="dogB"></g></g></g><g id="baby"></g>
+      <g id="dogW"><g id="dogA"><g id="dogB"></g></g></g><g id="baby"></g><g id="topmsg"></g>
       <g id="snow"></g>
       <rect id="night" width="360" height="300" fill="#03110b" opacity="0" pointer-events="none" style="transition:opacity .8s"/>
     </svg>
@@ -296,6 +298,7 @@ const ico=(k,c='')=>`<svg viewBox="0 0 48 48" class="${c}" aria-hidden="true">${
 /* content */
 const ITEMS=[
  {id:'scarf',slot:'neck',name:'Yellow scarf',lv:1},
+ {id:'pawmedal',slot:'neck',name:'Golden paw medal',ck:7,note:'For 7 days together'},{id:'starclip',slot:'hat',name:'Star hair clip',ck:14,note:'For 14 days together'},
  {id:'santa',slot:'hat',name:'Santa hat',lv:2},
  {id:'bell',slot:'neck',name:'Jingle bell collar',lv:3},
  {id:'antlers',slot:'hat',name:'Reindeer antlers',lv:4},
@@ -332,14 +335,14 @@ const LINES={
  messy:['My fur is all tangled… brush me, Ploy?','I look like a dandelion. Brush please?','My fluff is out of control!'],
  tired:['So… sleepy… one little nap?','My paws are tired. Bedtime?'],
  sad:['Play with me, Ploy? Just a little?','I missed you. Can we play?'],
- pat:['Right behind the ears, yes!','More pats, Ploy!','*happy Samoyed smile*','awoooOo.'],
+ pat:['Right behind the ears, yes!','More pats, Ploy!','*happy Samoyed smile*','Best hands in the whole market.'],
  play:['Again! Again!','I caught it! Did you see?!','Zoomies!!',"I'm shedding from happiness. Sorry!"],
  bath:['Bubbles! Now I\'m fluffier than snow.','Squeaky clean and extra floofy.','Do I smell like strawberries now?'],
  wel:['Welcome back, Ploy! Did you land safe?',"You're back! I counted snowflakes while you were gone.",'Ploy! How was the flight? Tell me everything!']};
 const timeLine=()=>{const h=new Date().getHours();return h<5?"Ploy, it's so late. Jet lag again? Let's both rest.":h<11?'Good morning, Ploy! Did you eat breakfast?':h<15?'Lunch time! Som tam? Steak? Both?':h>=21?"It's getting late. Rest well before your next flight.":null};
 
 /* state */
-const fresh=()=>({v:1,mess:0,name:'',last:Date.now(),st:{hunger:80,happy:80,clean:90,energy:85},xp:0,lv:1,sleep:false,fur:0,pats:0,eq:{hat:null,neck:'scarf'},sfx:true,music:true,read:[],fluff:0,strokes:0,snacks:0,tr:{},trip:null,stamps:{},spent:0,owned:[],deco:[],notes:{i:0,day:'',ann:'',read:[]},cg:{day:'',n:0},bx:{day:'',n:0},fc:{day:'',t:'',n:0},baby:'',visited:{},wk:{day:'',n:0},lastP:[],gift:{day:'',ready:false,opened:false},toys:[],giftLog:[],pc:{},ended:false,q:{day:today(),p:{},done:[]}});
+const fresh=()=>({v:1,mess:0,name:'',last:Date.now(),st:{hunger:80,happy:80,clean:90,energy:85},xp:0,lv:1,sleep:false,fur:0,pats:0,eq:{hat:null,neck:'scarf'},sfx:true,music:true,read:[],fluff:0,strokes:0,snacks:0,tr:{},trip:null,stamps:{},spent:0,owned:[],deco:[],notes:{i:0,day:'',ann:'',read:[]},cg:{day:'',n:0},bx:{day:'',n:0},fc:{day:'',t:'',n:0},baby:'',visited:{},wk:{day:'',n:0},lastP:[],gift:{day:'',ready:false,opened:false},toys:[],giftLog:[],pc:{},ended:false,q:{day:today(),p:{},done:[]},tm:{read:[],ann:''},ck:{days:[]},met:{}});
 function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r),b=fresh();return Object.assign(b,o,{st:Object.assign(b.st,o.st),eq:Object.assign(b.eq,o.eq),q:Object.assign(b.q,o.q),notes:Object.assign(b.notes,o.notes||{})})}}catch(e){}return null}
 let canStore=false;try{localStorage.setItem(KEY+'-t','1');canStore=localStorage.getItem(KEY+'-t')==='1';localStorage.removeItem(KEY+'-t')}catch(e){}
 let resetting=false;
@@ -384,6 +387,7 @@ function neck(id,n,hr){if(!id)return'';const a=f(hr*.78),b=f(hr*.74);
  if(id==='pretzel')return band('#6b3f22','#3a2010',2)+`<g transform="translate(0 ${n+21})"><path d="M-9 6C-15 0-12-9-5-8C0-7 2 2 0 6C-2 2 0-7 5-8C12-9 15 0 9 6C5 10-5 10-9 6Z" fill="none" stroke="#3a2010" stroke-width="6.5" stroke-linejoin="round"/><path d="M-9 6C-15 0-12-9-5-8C0-7 2 2 0 6C-2 2 0-7 5-8C12-9 15 0 9 6C5 10-5 10-9 6Z" fill="none" stroke="#c7772e" stroke-width="3.6" stroke-linejoin="round"/><circle cx="-8" cy="-3" r=".9" fill="#fff"/><circle cx="7" cy="-4" r=".9" fill="#fff"/><circle cx="2" cy="7" r=".9" fill="#fff"/></g>`;
  if(id.startsWith('ch_')){const c=CITIES.find(x=>x.id===id.slice(3));if(!c)return'';return band(c.col,'#2a2420',2)+`<path d="M0 ${n+6}v6" stroke="#f1c232" stroke-width="2"/><circle cx="0" cy="${n+24}" r="13" fill="#fffdf6" stroke="#f1c232" stroke-width="3"/><circle cx="0" cy="${n+24}" r="13" fill="none" stroke="#8a6500" stroke-width=".8"/><g transform="translate(-10 ${n+15}) scale(.25)">${stampArt(c.id,c.col,true)}</g>`}
  if(id==='bandana')return`<path d="M${-a} ${f(n-6)}Q0 ${f(n+10)} ${a} ${f(n-6)}L0 ${f(n+42)}Z" fill="#7cc4ee" stroke="#2a5f80" stroke-width="2.5" stroke-linejoin="round"/>`+[[-18,5],[0,9],[18,5],[-8,20],[8,21],[0,32]].map(([x,y])=>`<circle cx="${x}" cy="${n+y}" r="2.4" fill="#fff"/>`).join('');
+ if(id==='pawmedal')return band('#d8344a','#7a1424',2)+`<g transform="translate(0 ${n+19})"><circle r="10" fill="#f1c232" stroke="#8a6500" stroke-width="2"/><g fill="#8a6500"><ellipse cy="3" rx="3.6" ry="2.8"/><circle cx="-4.2" cy="-1.8" r="1.6"/><circle cx="-1.4" cy="-4.4" r="1.6"/><circle cx="1.6" cy="-4.4" r="1.6"/><circle cx="4.4" cy="-1.8" r="1.6"/></g></g>`;
  if(id==='bowtie')return band('#3a3330','#111',-1)+`<path d="M0 ${n+7}L-15 ${n-2}V${n+16}ZM0 ${n+7}L15 ${n-2}V${n+16}Z" fill="#d8344a" stroke="#7a1424" stroke-width="2" stroke-linejoin="round"/><circle cx="0" cy="${n+7}" r="4.2" fill="#ffd23f" stroke="#7a1424" stroke-width="1.6"/>`;
  return''}
 function hat(id,t,hr){if(!id)return'';
@@ -400,6 +404,7 @@ function hat(id,t,hr){if(!id)return'';
  if(id==='ski')return`<path d="M-31 10Q-33-30 0-32Q33-30 31 10Z" fill="#d8344a" stroke="#7a1424" stroke-width="2.5"/><rect x="-32" y="0" width="64" height="11" rx="5" fill="#fff" stroke="#7a1424" stroke-width="2"/><g stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M0-24v16M-7-20l14 8M7-20l-14 8"/></g>`+fluff(0,-34,6,5,6,5);
  if(id==='hachimaki')return`<path d="M-36 2Q0-8 36 2L36 12Q0 2-36 12Z" fill="#fff" stroke="${LN}" stroke-width="2.2"/><circle cx="0" cy="3" r="5" fill="#d8344a"/><path d="M34 7l16-8M34 7l14 10" stroke="${LN}" stroke-width="7.5" stroke-linecap="round"/><path d="M34 7l16-8M34 7l14 10" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`;
  if(id==='crown'){const C=['#ffd23f','#ff8fa3','#fff','#c3a6ff'];let s='';[-32,-19,-6,7,20,33].forEach((x,i)=>{const y=4-(1-(x/36)**2)*9;s+=`<ellipse cx="${x+6}" cy="${f(y+3)}" rx="4" ry="2.2" fill="#6ab04c"/><g transform="translate(${x} ${f(y)})" fill="${C[i%4]}" stroke="${LN}" stroke-width="1.2">${[0,72,144,216,288].map(r=>`<circle cx="0" cy="-3.6" r="3.2" transform="rotate(${r})"/>`).join('')}<circle r="2.4" fill="#f08a2c"/></g>`});return s}
+ if(id==='starclip')return`<g transform="translate(${f(hr*.5)} ${f(t+8)}) rotate(12)"><path d="M0-14L4-5L14-4L6.5 3L9 13L0 7.5L-9 13L-6.5 3L-14-4L-4-5Z" fill="#ffd23f" stroke="#9a6b00" stroke-width="2.2" stroke-linejoin="round"/><circle cx="-3" cy="-3" r="1.6" fill="#fff"/></g>`;
  if(id==='party')return`<g transform="rotate(10)"><path d="M-16 4L2-42L20 4Z" fill="#7cc4ee" stroke="${LN}" stroke-width="2.5" stroke-linejoin="round"/><path d="M-9-12L15-8M-3-27L9-25" stroke="#ffd23f" stroke-width="4"/><circle cx="2" cy="-44" r="6" fill="#ff8fa3" stroke="${LN}" stroke-width="2"/></g>`;
  return''}
 const PX=274,PY=512,SC=[.3,.34,.38];
@@ -554,7 +559,7 @@ function levelUp(ups){const to=ups[ups.length-1],from=ups[0]-1,grew=stageOf(from
  ${li>=0&&ups[ups.length-1]!==MAXL?`<p style="text-align:center">A letter arrived for you, Ploy.</p>`:''}
  ${to===MAXL?`<p style="text-align:center">${T('{n}')} is all grown up. Thank you for taking such good care of ${T('{n}')}.</p>`:''}
  <div class="row" style="justify-content:center">${to===MAXL&&!S.ended?'<button class="btn" data-a="ending">Yay!</button>':li>=0?`<button class="btn ghost" data-a="close">Later</button><button class="btn" data-a="read" data-i="${li}">Read letter</button>`:'<button class="btn" data-a="close">Yay!</button>'}</div>`,'lvup',true)}
-const unlocked=i=>i.lv?S.lv>=i.lv:i.fur?S.fur>=i.fur:i.city?!!S.stamps[i.city]:i.shop?S.owned.includes(i.id):false;
+const unlocked=i=>i.ck?S.ck.days.length>=i.ck:i.lv?S.lv>=i.lv:i.fur?S.fur>=i.fur:i.city?!!S.stamps[i.city]:i.shop?S.owned.includes(i.id):false;
 
 /* actions */
 const blockedAsleep=()=>{if(S.sleep){sfx('no');say(pick(['Zzz… (soft snoring)','*sleepy tail wag*','Shh… dreaming about burgers…']));return true}return false};
@@ -625,10 +630,10 @@ let paneKind='',locked=false;
 function open(html,kind,mid,lock){paneKind=kind;locked=!!lock;$('#pane').innerHTML=html;const o=$('#ov');o.classList.add('on');o.classList.toggle('mid',!!mid);const b=$('#pane').querySelector('input,button');if(b)setTimeout(()=>b.focus(),50)}
 function close(){if(locked)return;$('#ov').classList.remove('on');paneKind=''}
 function foodPane(){open(`<h2>What's for dinner?</h2><p class="sub">Ploy's favorites make ${T('{n}')} extra happy.</p><div class="grid2">${FOODS.filter(x=>!x.snack||S.snacks>0).map(x=>`<button class="food" data-a="eat" data-id="${x.id}">${x.fav?'<span class="tag">Ploy\'s fav</span>':''}${ico(x.ic)}${x.name}<small>${x.snack?'×'+S.snacks+' saved from Treat catch':(x.h>=30?'Very filling':x.h>=25?'Filling':'Light')+(x.c<0?' · a bit messy':'')}</small></button>`).join('')}</div><div class="row"><button class="btn ghost" data-a="close">Not now</button></div>`,'food')}
-function questPane(){resetQuests();open(`<h2>Today's quests</h2><p class="sub">New quests every day. ${S.lv<MAXL?`${need(S.lv)-S.xp} XP to level ${S.lv+1}.`:'Top level reached.'}</p><div class="list">${QUESTS.map(q=>{const v=S.q.p[q.id]||0,done=S.q.done.includes(q.id);return`<div class="q"><div><b>${T(q.t)}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div><small>${v} / ${q.g} · +${q.xp} XP</small></div>${done?'<span class="ok">Done</span>':`<button class="btn sm" data-a="claim" data-id="${q.id}" ${v>=q.g?'':'disabled'}>Claim</button>`}</div>`}).join('')}</div><div class="row"><button class="btn ghost" data-a="help">How to play</button><button class="btn ghost" data-a="close">Close</button></div>`,'quests')}
-function closetPane(){const sec=(slot,lab)=>`<p style="font:600 15px Fredoka,sans-serif;margin:14px 0 8px">${lab}</p><div class="grid2">${ITEMS.filter(i=>i.slot===slot&&!(i.id.startsWith('ch_')&&!unlocked(i))).map(i=>{const u=unlocked(i),on=S.eq[slot]===i.id;return`<button class="item${on?' on':''}" data-a="wear" data-id="${i.id}" ${u?'':'disabled'}>${i.name}<small>${!u?(i.lv?'Unlocks at level '+i.lv:i.fur?`Collect ${i.fur} fur tufts (${S.fur}/${i.fur})`:i.city?'Souvenir from '+cityName(i.city):'In the shop · '+i.shop+' fur'):on?'Wearing · tap to remove':i.note||'Tap to wear'}</small></button>`}).join('')}</div>`;
+function questPane(){resetQuests();open(`${ckHTML()}<h2>Today's quests</h2><p class="sub">New quests every day. ${S.lv<MAXL?`${need(S.lv)-S.xp} XP to level ${S.lv+1}.`:'Top level reached.'}</p><div class="list">${QUESTS.map(q=>{const v=S.q.p[q.id]||0,done=S.q.done.includes(q.id);return`<div class="q"><div><b>${T(q.t)}</b><div class="bar"><i style="width:${v/q.g*100}%"></i></div><small>${v} / ${q.g} · +${q.xp} XP</small></div>${done?'<span class="ok">Done</span>':`<button class="btn sm" data-a="claim" data-id="${q.id}" ${v>=q.g?'':'disabled'}>Claim</button>`}</div>`}).join('')}</div><div class="row"><button class="btn ghost" data-a="help">How to play</button><button class="btn ghost" data-a="close">Close</button></div>`,'quests')}
+function closetPane(){const sec=(slot,lab)=>`<p style="font:600 15px Fredoka,sans-serif;margin:14px 0 8px">${lab}</p><div class="grid2">${ITEMS.filter(i=>i.slot===slot&&!(i.id.startsWith('ch_')&&!unlocked(i))).map(i=>{const u=unlocked(i),on=S.eq[slot]===i.id;return`<button class="item${on?' on':''}" data-a="wear" data-id="${i.id}" ${u?'':'disabled'}>${i.name}<small>${!u?(i.ck?`Check in on ${i.ck} days (${S.ck.days.length}/${i.ck})`:i.lv?'Unlocks at level '+i.lv:i.fur?`Collect ${i.fur} fur tufts (${S.fur}/${i.fur})`:i.city?'Souvenir from '+cityName(i.city):'In the shop · '+i.shop+' fur'):on?'Wearing · tap to remove':i.note||'Tap to wear'}</small></button>`}).join('')}</div>`;
  open(`<h2>Closet</h2><p class="sub">Dress up ${T('{n}')}. Fur tufts collected: ${S.fur}</p>${sec('hat','Hats')}${sec('neck','Neck')}${(()=>{const k=ITEMS.filter(i=>i.id.startsWith('ch_')&&!unlocked(i)).length;return k?`<p class="sub" style="margin-top:12px!important">${k} more city charms to collect. Fly somewhere new to bring one home.</p>`:''})()}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'closet')}
-function lettersPane(){open(`<h2>Letters</h2><p class="sub">New letters arrive as ${T('{n}')} grows up.</p><div class="list">${LETTERS.map((l,i)=>{const u=S.lv>=l.lv,r=S.read.includes(i);return`<div class="env">${ico(u?(r?'envOpen':'env'):'lock')}<div><b>${u?l.title:'Sealed letter'}</b><small>${u?(r?'Read':'New!'):'Arrives at level '+l.lv}</small></div>${u?`<button class="btn sm" data-a="read" data-i="${i}">Open</button>`:''}</div>`}).join('')}</div>${S.notes.read.length?`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">Daily notes</p><div class="list">${S.notes.read.map(i=>`<div class="env">${ico('envOpen')}<div><b>Note #${i+1}</b><small>${DAILY[i].slice(0,38)}…</small></div><button class="btn sm" data-a="note" data-i="${i}">Open</button></div>`).join('')}</div>`:''}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'letters')}
+function lettersPane(){open(`<h2>Letters</h2><p class="sub">New letters arrive as ${T('{n}')} grows up.</p><div class="list">${LETTERS.map((l,i)=>{const u=S.lv>=l.lv,r=S.read.includes(i);return`<div class="env">${ico(u?(r?'envOpen':'env'):'lock')}<div><b>${u?l.title:'Sealed letter'}</b><small>${u?(r?'Read':'New!'):'Arrives at level '+l.lv}</small></div>${u?`<button class="btn sm" data-a="read" data-i="${i}">Open</button>`:''}</div>`}).join('')}</div>${S.notes.read.length?`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">Daily notes</p><div class="list">${S.notes.read.map(i=>`<div class="env">${ico('envOpen')}<div><b>Note #${i+1}</b><small>${DAILY[i].slice(0,38)}…</small></div><button class="btn sm" data-a="note" data-i="${i}">Open</button></div>`).join('')}</div>`:''}${tmListHTML()}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'letters')}
 function readLetter(i){const l=LETTERS[i];if(!l||S.lv<l.lv)return;if(l.lv===MAXL)return endLetter();if(!S.read.includes(i))S.read.push(i);sfx('letter');save();locked=false;
  open(`<div class="paper"><p>Dear Ploy,</p>${l.p.map(x=>`<p>${T(x)}</p>`).join('')}<p class="sig">${T('— '+l.from)}</p></div><div class="row"><button class="btn ghost" data-a="letters">All letters</button><button class="btn" data-a="close">Close</button></div>`,'letter',true);render()}
 function namePane(firstTime){open(`<h2>${firstTime?'Welcome home, Ploy!':'Rename your pup'}</h2><p>${firstTime?'Welcome home from Germany, Ploy! A little Samoyed followed the Christmas market lights all the way home with you. What will you name them?':'Pick a new name.'}</p><form id="nf"><input class="nm" id="nmI" maxlength="14" autocomplete="off" value="${firstTime?'Mochi':S.name}" aria-label="Pup's name"><div class="row">${firstTime?'':'<button type="button" class="btn ghost" data-a="close">Cancel</button>'}<button class="btn" type="submit">${firstTime?"That's the name!":'Save'}</button></div></form>`,'name',true,firstTime)}
@@ -685,7 +690,7 @@ const DAILY=[
  "Fun fact: you're my favorite person to talk to.",
  "Jet lag is temporary. Being awesome is permanent.",
  "Whatever city you're in today, someone back home is cheering for you."];
-const FRIENDS=[{b:'shiba',name:'Kuma',breed:'Shiba'},{b:'corgi',name:'Butter',breed:'Corgi'},{b:'golden',name:'Honey',breed:'Golden Retriever'}];
+const FRIENDS=[{b:'shiba',name:'Kuma',breed:'Shiba'},{b:'corgi',name:'Butter',breed:'Corgi'},{b:'golden',name:'Honey',breed:'Golden Retriever'},{b:'husky',name:'Storm',breed:'Siberian Husky',rare:1},{b:'pom',name:'Mikan',breed:'Pomeranian',rare:1,sz:.68}];
 const furBal=()=>S.fur-S.spent;
 const trickN=id=>(S.tr[id]||{n:0}).n;
 const learned=t=>trickN(t.id)>=t.days;
@@ -707,7 +712,7 @@ function decoSVG(id){
 function drawDeco(){$('#deco').innerHTML=DECOS.filter(d=>S.deco.includes(d.id)).map(d=>decoSVG(d.id)).join('')}
 
 /* --- friends --- */
-function friendSVG(b){const C={shiba:{c:'#e39a52',d:'#c97c35',w:'#fff6ea',ear:'pt',tail:'curl',leg:15,col:'#d8344a'},corgi:{c:'#ee9d48',d:'#d27f2c',w:'#fff6ea',ear:'big',tail:'',leg:8,col:'#3aa0c8'},golden:{c:'#e8b766',d:'#c9953f',w:'#f6dcaa',ear:'flop',tail:'long',leg:17,col:'#5f9a2c'}}[b];
+function friendSVG(b){const C={shiba:{c:'#e39a52',d:'#c97c35',w:'#fff6ea',ear:'pt',tail:'curl',leg:15,col:'#d8344a'},corgi:{c:'#ee9d48',d:'#d27f2c',w:'#fff6ea',ear:'big',tail:'',leg:8,col:'#3aa0c8'},golden:{c:'#e8b766',d:'#c9953f',w:'#f6dcaa',ear:'flop',tail:'long',leg:17,col:'#5f9a2c'},husky:{c:'#6f7a87',d:'#56606c',w:'#fff',ear:'pt',tail:'curl',leg:16,col:'#d8344a'},pom:{c:'#f0a040',d:'#d88828',w:'#ffe9c8',ear:'pt',tail:'curl',leg:9,col:'#ff8fa3'}}[b];
  const L=C.leg,by=-(L+13),hx=28,hy=by-15;let s='';
  const lg=(x,c,fill)=>`<g class="fl ${c}"><rect x="${x-5}" y="${by+4}" width="10" height="${-by-4}" rx="4" fill="${fill}" stroke="${OL}" stroke-width="2.2"/></g>`;
  s+=lg(-16,'fa',C.d)+lg(14,'fb',C.d);
@@ -721,16 +726,16 @@ function friendSVG(b){const C={shiba:{c:'#e39a52',d:'#c97c35',w:'#fff6ea',ear:'p
  if(C.ear==='flop')s+=`<ellipse cx="${hx-7}" cy="${hy+1}" rx="6" ry="11" fill="${C.d}" stroke="${OL}" stroke-width="2.2" transform="rotate(14 ${hx-7} ${hy+1})"/>`;
  return s}
 let fr=null,nextFriend=Date.now()+rnd(90e3,180e3);
-function startFriend(){const d=pick(FRIENDS),fromRight=dogX<180,tx=Math.max(40,Math.min(320,dogX+(fromRight?125:-125)));
+function startFriend(){const rare=Math.random()<.08,d=pick(FRIENDS.filter(x=>!!x.rare===rare)),fromRight=dogX<180,tx=Math.max(40,Math.min(320,dogX+(fromRight?125:-125)));
  fr={d,x:fromRight?410:-50,tx,dir:fromRight?-1:1,state:'in',until:0};$('#friend').innerHTML=`<g id="frB">${friendSVG(d.b)}</g>`}
 function friendTick(dt,now){if(!fr){if(now>nextFriend){nextFriend=now+rnd(150e3,320e3);if(!S.sleep&&!paneKind&&S.name&&!CG)startFriend()}return}
  const g=$('#friend');
  if(fr.state==='in'){const sp=40*dt;if(Math.abs(fr.tx-fr.x)<=sp){fr.x=fr.tx;fr.state='stay';fr.until=now+6500;stopWalk(7000);dir=fr.x>dogX?1:-1;
-   const n=fr.d.name;say(pick([`Ploy, this is my friend ${n} the ${fr.d.breed}!`,`${n} came to say hi!`,`Look, Ploy! ${n} is visiting!`]),4500);sfx('yip');hearts(3);S.st.happy=clamp(S.st.happy+10);gain(3);
+   const n=fr.d.name,firstMeet=!S.met[n];S.met[n]=(S.met[n]||0)+1;if(fr.d.rare){if(firstMeet){toast(`Rare visitor! ${n} the ${fr.d.breed}`);gain(10)}hearts(4);say(pick([`Ploy, look!! ${n} the ${fr.d.breed} came all this way!`,`${n} hardly ever visits! Quick, say hi, Ploy!`]),5000)}else say(pick([`Ploy, this is my friend ${n} the ${fr.d.breed}!`,`${n} came to say hi!`,`Look, Ploy! ${n} is visiting!`]),4500);sfx('yip');hearts(3);S.st.happy=clamp(S.st.happy+10);gain(3);
    fxAt(sz('heart',20),fr.x/3.6,(266-60)/3,'heart',1200,0)}else fr.x+=Math.sign(fr.tx-fr.x)*sp}
  else if(fr.state==='stay'){if(now>fr.until){fr.state='out';fr.dir=-fr.dir;say(`Bye, ${fr.d.name}! Come back soon!`)}}
  else{fr.x+=fr.dir*46*dt;if(fr.x<-70||fr.x>430){fr=null;g.innerHTML='';return}}
- g.classList.toggle('walk',fr.state!=='stay');g.setAttribute('transform',`translate(${f(fr.x)} 266) scale(${fr.dir*.9} .9)`)}
+ g.classList.toggle('walk',fr.state!=='stay');g.setAttribute('transform',`translate(${f(fr.x)} 266) scale(${fr.dir*(fr.d.sz||.9)} ${fr.d.sz||.9})`)}
 
 /* --- welcome sign, plane, note --- */
 let signT;
@@ -751,7 +756,7 @@ function depart(id){if(S.sleep){S.sleep=false;drawDog(true);musicLevel()}S.trip=
  departSeq(id);if(!S.pc[id])S.pc[id]={note:Math.random()<.65?pick(PCNOTE):''};setTimeout(sayWx,6500);toast(`Have a great flight to ${cityName(id)}!`);render();save()}
 function land(){if(!S.trip)return;const c=CITIES.find(x=>x.id===S.trip.c),hrs=(Date.now()-S.trip.t)/36e5,firstTime=!S.stamps[c.id];S.stamps[c.id]=(S.stamps[c.id]||0)+1;S.trip=null;if(!S.pc[c.id])S.pc[c.id]={note:Math.random()<.65?pick(PCNOTE):''};
  close();clearTimeout(walkT);walk=null;sfx('level');S.st.happy=clamp(S.st.happy+20);window._pxp=20;landSeq(c,hrs,firstTime);render();save()}
-function stampPane(){const n=CITIES.filter(c=>S.stamps[c.id]).length;open(`<h2>Stamp book</h2><p class="sub">${n} of ${CITIES.length} places. Each new place brings ${T('{n}')} a souvenir.</p>${REG.map(([r,lab])=>{const L=CITIES.filter(c=>c.r===r);return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">${lab} · ${L.filter(c=>S.stamps[c.id]).length}/${L.length}</p><div class="stamps">${L.map(c=>{const v=S.stamps[c.id];return v?`<button class="stampc" data-a="postcard" data-id="${c.id}">${stampSVG(c,v)}<small>Visited ×${v} · tap for postcard</small></button>`:`<div class="stampc">${stampSVG(c,v)}<small>Not yet</small></div>`}).join('')}</div>`}).join('')}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'stamps')}
+function stampPane(){const n=CITIES.filter(c=>S.stamps[c.id]).length;open(`<h2>Stamp book</h2><p class="sub">${n} of ${CITIES.length} places. Each new place brings ${T('{n}')} a souvenir.</p>${REG.map(([r,lab])=>{const L=CITIES.filter(c=>c.r===r);return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">${lab} · ${L.filter(c=>S.stamps[c.id]).length}/${L.length}</p><div class="stamps">${L.map(c=>{const v=S.stamps[c.id];return v?`<button class="stampc" data-a="postcard" data-id="${c.id}">${stampSVG(c,v)}<small>Visited ×${v} · tap for postcard</small></button>`:`<div class="stampc">${stampSVG(c,v)}<small>Not yet</small></div>`}).join('')}</div>`}).join('')}${visitorsHTML()}<div class="row"><button class="btn ghost" data-a="close">Close</button></div>`,'stamps')}
 
 /* --- tricks --- */
 function trickPane(){open(`<h2>Tricks</h2><p class="sub">Practice once a day. Each trick takes a few days to learn.</p><div class="list">${TRICKS.map((t,i)=>{const n=trickN(t.id),ok=n>=t.days,avail=i===0||learned(TRICKS[i-1]),done=(S.tr[t.id]||{}).last===today();
@@ -1046,7 +1051,7 @@ function render(){const s=S.st,st=stageOf(S.lv);
 /* events */
 $('#i-feed').innerHTML=ico('bowl');$('#i-play').innerHTML=ico('ball');$('#i-bath').innerHTML=ico('bubbles');
 $('#i-q').innerHTML=ico('quest');$('#i-c').innerHTML=ico('hanger');$('#i-l').innerHTML=ico('env');$('#i-s').innerHTML=ico('bag');$('#i-st').innerHTML=ico('stampI');$('#i-a').innerHTML=ico('camera');$('#i-fly').innerHTML=ico('fly');$('#i-walk').innerHTML=ico('walk');$('#brushc').innerHTML=sz('brush',34);
-const ACT={walk:startWalk,postcard:d=>postcardPane(d.id,!!d.new),ending,endletter:endLetter,credits,guide:d=>guidePane(+d.p),guidedone:()=>{locked=false;close();welcomeSeq()},help:()=>guidePane(0),feed:()=>S.sleep?blockedAsleep():foodPane(),eat:d=>eat(d.id),play:playPane,fetch:()=>{close();fetchGame()},catch:catchPane,cgstop:()=>{if(CG){CG.t=99}},tricks:trickPane,toybox:toyBox,toy:d=>playToy(d.t),trick:d=>doTrick(d.id),bath,sleep,
+const ACT={tm:d=>readTM(d.id),walk:startWalk,postcard:d=>postcardPane(d.id,!!d.new),ending,endletter:endLetter,credits,guide:d=>guidePane(+d.p),guidedone:()=>{locked=false;close();welcomeSeq()},help:()=>guidePane(0),feed:()=>S.sleep?blockedAsleep():foodPane(),eat:d=>eat(d.id),play:playPane,fetch:()=>{close();fetchGame()},catch:catchPane,cgstop:()=>{if(CG){CG.t=99}},tricks:trickPane,toybox:toyBox,toy:d=>playToy(d.t),trick:d=>doTrick(d.id),bath,sleep,
  fly:flyPane,depart:d=>depart(d.id),land,stamps:stampPane,shop:shopPane,buy:d=>buy(d.id),place:d=>{const i=S.deco.indexOf(d.id);if(i>=0)S.deco.splice(i,1);else S.deco.push(d.id);drawDeco();shopPane()},album:albumPane,snap,photo:d=>photoPane(+d.i),delphoto:d=>{ALB.splice(+d.i,1);saveAlb();albumPane()},note:d=>readNote(+d.i),quests:questPane,closet:closetPane,letters:()=>{locked=false;lettersPane()},
  close:()=>{locked=false;close();if(window._pxp&&paneKind===''){const x=window._pxp;window._pxp=0;setTimeout(()=>gain(x),600)}if(S.lv>=MAXL&&S.ended&&!S.baby&&!babyAsked)setTimeout(babyPane,400)},snd:d=>{S[d.k]=!S[d.k];if(d.k==='music'){unlock();musicLevel()}else if(S.sfx)sfx('tap');drawSound();save()},rename:()=>namePane(false),read:d=>readLetter(+d.i),
  claim:d=>{const q=QUESTS.find(x=>x.id===d.id);if(!q||S.q.done.includes(q.id)||(S.q.p[q.id]||0)<q.g)return;S.q.done.push(q.id);sfx('coin');toast(`+${q.xp} XP`);const lv=S.lv;gain(q.xp);if(S.lv===lv)questPane();save()},
@@ -1055,6 +1060,7 @@ const ACT={walk:startWalk,postcard:d=>postcardPane(d.id,!!d.new),ending,endlette
 document.addEventListener('click',e=>{if(noClick&&e.target.closest('#scene'))return;const t=e.target.closest('[data-a]');if(t&&!t.disabled){ACT[t.dataset.a]&&ACT[t.dataset.a](t.dataset);if(t.dataset.a!=='reset')save();return}
  const tu=e.target.closest('.tuft');if(tu){grabFur(+tu.dataset.t);save();return}
  if(e.target.closest('#note')){readNote();return}
+ if(e.target.closest('#topmsg')){const m=tmNew()[0];if(m)readTM(m.id);return}
  if(e.target.closest('#cookie')){openCookie();return}
  if(e.target.closest('#gift')){openGift();return}
  const ty=e.target.closest('.toy');if(ty){playToy(ty.dataset.t);return}
@@ -1076,13 +1082,64 @@ function hash(){const h=location.hash;if(h==='#reset')open(`<h2>Start over?</h2>
 window.addEventListener('hashchange',hash);
 window.addEventListener('pagehide',save);window.addEventListener('beforeunload',save);
 
+/* ===== round 4: messages from Top, away diary, check-in, rare visitors ===== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ymd=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`};
+const PQ=[];const enqueue=fn=>PQ.push(fn);
+setInterval(()=>{if(PQ.length&&!paneKind&&S.name&&!CG)PQ.shift()()},1200);
+
+/* --- messages from Top (edit messages.json on GitHub) --- */
+let TM=[];
+const tmNew=()=>TM.filter(m=>!S.tm.read.includes(m.id));
+function loadTM(){fetch('messages.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(j=>{
+ const list=Array.isArray(j)?j:(j&&j.messages)||[];TM=list.filter(m=>m&&m.id!=null&&m.text&&(!m.date||String(m.date)<=ymd())).map(m=>Object.assign({},m,{id:String(m.id)}));
+ drawTM();const n=tmNew();if(n.length&&S.name&&S.tm.ann!==n[0].id){S.tm.ann=n[0].id;save();setTimeout(()=>{if(!S.sleep)say('Ploy! A paper plane just flew in. I think it\'s from Top!',4500);sfx('letter')},3500)}}).catch(()=>{})}
+function drawTM(){const on=S.name&&tmNew().length>0;$('#topmsg').innerHTML=on?`<g transform="translate(244 92) rotate(-8)"><g class="notebob"><circle r="22" fill="transparent"/><path d="M-17 3L17-11L3 13L-1 5Z" fill="#fff8e1" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M-1 5L17-11" stroke="${INK}" stroke-width="1.6"/><path d="M-1 5L-4 11L3 13" fill="#efe2bf" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 11s-3.2-1.7-3.2-3.8a1.7 1.7 0 0 1 3.2-.8 1.7 1.7 0 0 1 3.2.8c0 2.1-3.2 3.8-3.2 3.8z" fill="#d8344a"/></g></g>`:''}
+function readTM(id){const m=TM.find(x=>x.id===id);if(!m)return;const first=!S.tm.read.includes(id);if(first){S.tm.read.push(id);gain(3)}drawTM();sfx('letter');save();locked=false;
+ const body=String(m.text).split(/\n+/).map(x=>`<p>${esc(x)}</p>`).join('');
+ open(`<div class="paper">${m.title?`<p><b>${esc(m.title)}</b></p>`:'<p>Dear Ploy,</p>'}${body}<p class="sig">— ${esc(m.from||'Top')}</p></div><div class="row"><button class="btn ghost" data-a="letters">All letters</button><button class="btn" data-a="close">Close</button></div>`,'letter',true);
+ if(first)setTimeout(()=>{if(!S.sleep){hearts(3);joy(1500)}},400)}
+function tmListHTML(){const r=TM.filter(m=>S.tm.read.includes(m.id)).reverse();if(!r.length)return'';
+ return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">From Top</p><div class="list">${r.map(m=>`<div class="env">${ico('envOpen')}<div><b>${esc(m.title||'Paper plane')}</b><small>${esc(String(m.text).slice(0,38))}…</small></div><button class="btn sm" data-a="tm" data-id="${esc(m.id)}">Open</button></div>`).join('')}</div>`}
+
+/* --- away diary --- */
+const DIARY={
+ gen:["Chased my tail for ten minutes. Didn't catch it. Will try again.","Barked at a pigeon on the window. It did not leave. Rude.","Hid one of your socks under the sofa. You'll never find it.","Napped in the sunny spot by the window. Ten out of ten.","Practiced my Samoyed smile in the mirror. Still perfect.","Tried to open the fridge. Almost did it.","Sat by the door listening for your footsteps.","Rolled on the rug until I was 30% fluffier.","Watched the planes in the sky and waved at every single one.","Counted the lights on the string. Lost count at four.","Sniffed your pillow. Still smells like you.","Dreamed about a burger as big as a sofa.","Shed enough fur to make a whole new puppy. Sorry.","Guarded the house from a very suspicious leaf."],
+ trip:["Top came by to feed me. He talks about you a lot.","Looked for your plane in the sky. Every plane might be you!","Top asked me if you landed safely yet. I said probably."],
+ night:["Heard a noise at night. Bravely hid behind the sofa.","Slept on your side of the bed. It's warmer."],
+ hungry:["My tummy started growling. I ate a crumb I found. Still hungry."],
+ dirty:["Found a puddle. We are now friends. Bath soon?"],
+ toy:["Played with Sunny the duck. Sunny won again."]};
+function diaryPane(gap,wasTrip){const k=Math.min(5,1+Math.floor(gap/(3*36e5))),now=Date.now(),start=now-gap,pool=[...DIARY.gen];
+ if(wasTrip)pool.push(...DIARY.trip,...DIARY.trip);if(gap>8*36e5)pool.push(...DIARY.night);if(S.st.hunger<30)pool.push(...DIARY.hungry);if(S.st.clean<35)pool.push(...DIARY.dirty);pool.push(...DIARY.toy);
+ if(S.baby&&S.lv>=MAXL)pool.push(`${S.baby} and I had a fluff fight. I let ${S.baby} win.`,`Taught ${S.baby} how to sit. ${S.baby} sat on me.`);
+ const lines=[];while(lines.length<k&&pool.length){const x=pool.splice(Math.floor(Math.random()*pool.length),1)[0];lines.push(x)}
+ const ts=lines.map(()=>start+Math.random()*gap).sort((a,b)=>a-b),td=new Date().toDateString();
+ const fmt=v=>{const d=new Date(v),tm=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return d.toDateString()===td?tm:d.toLocaleDateString('en-US',{weekday:'short'})+' '+tm};
+ const hrs=Math.round(gap/36e5);
+ open(`<h2>While you were away</h2><p class="sub">${T('{n}')}'s diary · ${hrs<48?hrs+' hours':Math.round(hrs/24)+' days'} without you</p><div class="paper diary">${lines.map((x,i)=>`<p><b>${fmt(ts[i])}</b>${T(x)}</p>`).join('')}<p class="sig">— ${T('{n}')}</p></div><div class="row"><button class="btn" data-a="close">Aww, thank you</button></div>`,'diary',true);sfx('letter')}
+
+/* --- check-in calendar --- */
+function checkIn(){if(!S.name)return;const d=ymd();if(S.ck.days.includes(d))return;S.ck.days.push(d);const n=S.ck.days.length;save();
+ if(n%7===0)setTimeout(()=>enqueue(()=>ckReward(n)),3200);else setTimeout(()=>toast(`Paw stamp ${n%7} of 7. ${7-n%7} more for a surprise!`),2000)}
+function ckReward(n){S.fur+=30;const it=ITEMS.find(i=>i.ck===n);window._pxp=25;sfx('level');save();render();
+ open(`${ico('star','big')}<h2 style="text-align:center">${n} days together!</h2><p style="text-align:center">Thank you for coming back, Ploy. Here's a little gift from ${T('{n}')}: <b>+30 fur</b> and <b>+25 XP</b>.</p>${it?`<p style="text-align:center">New in the closet: <b>${it.name}</b></p>`:''}<div class="row" style="justify-content:center"><button class="btn" data-a="close">Yay!</button></div>`,'ck',true)}
+function ckHTML(){const n=S.ck.days.length,w=n%7===0&&n?7:n%7;
+ return`<h2>Check-in</h2><p class="sub">A paw stamp for every day you visit. Every 7 stamps opens a surprise. Total: ${n} day${n===1?'':'s'}.</p><div class="dots" style="margin:0 0 18px">${Array.from({length:7},(_,k)=>`<i class="${k<w?'on':''}"></i>`).join('')}</div>`}
+
+/* --- visitors book --- */
+function visitorsHTML(){const met=FRIENDS.filter(d=>S.met[d.name]).length;
+ return`<p style="font:600 15px Fredoka,sans-serif;margin:16px 0 8px">Visitors · ${met}/${FRIENDS.length}</p><div class="list">${FRIENDS.map(d=>{const m=S.met[d.name];return`<div class="env"><svg viewBox="-62 -78 124 82" width="44" height="30" aria-hidden="true"${m?'':' style="filter:brightness(0);opacity:.18"'}>${friendSVG(d.b)}</svg><div><b>${m?d.name+' the '+d.breed:'???'}</b><small>${m?'Visited ×'+m:d.rare?'A rare visitor. Keep checking in!':'Not met yet'}${d.rare&&m?' · rare':''}</small></div><span></span></div>`}).join('')}</div>`}
+
 /* start */
 buildScene();marketHTML=$('#back').innerHTML;setScene('room');applyTime();setInterval(applyTime,60000);drawDeco();brushInit();
 let lastT=Date.now(),gap=0;
 if(!first){gap=Date.now()-S.last;decay(Math.min(gap,72*3600e3)/3600e3)}
 resetQuests();render();drawDog(true);drawNote();drawCookie();drawBaby();drawHome();setInterval(()=>{drawNote();drawCookie();drawHome()},60000);
+if(!first&&S.name&&gap>=2*36e5){const g0=gap,wt=!!S.trip;setTimeout(()=>enqueue(()=>diaryPane(g0,wt)),2500)}
 if(first||!S.name)namePane(true);else{setTimeout(()=>{if(cookieReady()&&!paneKind)say('There is a fortune cookie on the stall for you, Ploy!')},8500);setTimeout(sayWx,14000)}if(!first&&S.name)setTimeout(()=>say(S.trip?`Ploy! Are you still in ${cityName(S.trip.c)}? I miss you.`:gap>6*3600e3?pick(LINES.wel):(timeLine()||pick(LINES.gen))),600);
 hash();requestAnimationFrame(frame);
+checkIn();loadTM();setInterval(()=>{checkIn();drawTM()},60000);setInterval(loadTM,20*60e3);document.addEventListener('visibilitychange',()=>{if(!document.hidden){loadTM();checkIn()}});
 if(!canStore)setTimeout(()=>toast("This app can't save progress. Open the link in Safari or Chrome."),first?6000:1500);
 setInterval(()=>{const n=Date.now(),h=(n-lastT)/3600e3;lastT=n;const was=S.sleep;decay(Math.min(h,72));if(was&&!S.sleep){drawDog(true);musicLevel();sfx('wake');say('*big stretch* I slept so well, Ploy!')}render()},1000);
 setInterval(save,5000);
