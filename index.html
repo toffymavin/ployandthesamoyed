@@ -1110,7 +1110,7 @@ function welcomeSeq(){window._wel=Date.now();drawNote();drawCookie();drawHome();
  setTimeout(()=>{if(paneKind)return;const c=CITIES.find(x=>x.id==='germany');if(!S.pc.germany)S.pc.germany={note:'Welcome home. Rest well after the long flight.'};open(`<h2 style="text-align:center">Your first stamp!</h2>${postcardHTML(c,false)}<p style="text-align:center">${T('{n}')} saved you a souvenir from Germany: <b>Pretzel charm</b>.</p><div class="row" style="justify-content:center"><button class="btn ghost" data-a="close">Later</button><button class="btn" data-a="wear" data-id="pretzel">Try it on</button></div>`,'stamp',true)},7000)}
 document.addEventListener('submit',e=>{e.preventDefault();
  if(e.target.id==='bf'){const v=($('#bfI').value||'').trim().slice(0,14);if(!v)return;S.baby=v.replace(/[<>&"]/g,'');locked=false;close();babyX=Math.max(40,dogX-90);drawBaby();save();hearts(4);sfx('level');setTimeout(()=>say(`Ploy, meet ${S.baby}! I'm a big brother now!`,5000),500);return}
- const v=($('#nmI').value||'').trim().slice(0,14);if(!v)return;const was=!S.name;if(was)window._wel=Date.now();S.name=v.replace(/[<>&"]/g,'');locked=false;close();render();save();
+ const v=($('#nmI').value||'').trim().slice(0,14);if(!v)return;const was=!S.name;if(was)window._wel=Date.now();S.name=v.replace(/[<>&"]/g,'');locked=false;close();render();save();if(was&&window._pingName)window._pingName(S.name);
  if(was)guidePane(0);else{drawNote();drawCookie()}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else if(Date.now()-S.last>6*3600e3)setTimeout(()=>say(pick(LINES.wel)),500)});
@@ -1619,17 +1619,15 @@ setInterval(()=>{if(S.sleep||paneKind||fetching||scene!=='room'||!S.name||S.trip
 setInterval(()=>{if(S.st.clean>=45||paneKind||S.trip)return;const k=S.st.clean<20?3:S.st.clean<30?2:1;for(let i=0;i<k;i++)setTimeout(()=>fxAt(`<svg width="26" height="18" viewBox="0 0 26 18"><g fill="#b9a68a" opacity=".7"><circle cx="7" cy="11" r="5"/><circle cx="14" cy="7" r="6"/><circle cx="20" cy="11" r="4.5"/></g></svg>`,dogX/3.6+rnd(-9,9),headY()+rnd(4,30),'bub',1600,rnd(-25,25)),i*260)},2600);
 }
 </script>
-<script>/* notify-ping: tells Top's phone (ntfy) when the game is opened. Max 2 pings per device. */
-(function(){try{
-var TOPIC='ploy-pup-570d5ce67573',F='ploy-samoyed-ping',ls=localStorage;
-if(/[?&]me=1/.test(location.search)){ls.setItem(F,'me');return}
-var done=ls.getItem(F);if(done==='me'||done==='back')return;
-var raw=ls.getItem('ploy-samoyed-v1'),o=null;try{o=raw&&JSON.parse(raw)}catch(e){}
-var msg,flag;
-if(o&&o.name){msg='🐶 พลอยกลับมาเล่นเกมแล้ว — น้องชื่อ '+o.name+' เลเวล '+(o.lv||1);flag='back'}
-else if(!done){msg='🐶 พลอยเปิดเกมครั้งแรกแล้ว!';flag='first'}
-else return;
-fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:msg,keepalive:true}).then(function(r){if(r.ok)ls.setItem(F,flag)}).catch(function(){});
+<script>/* notify-ping: tells Top's phone (ntfy) when Ploy opens the game, names the pup, or comes back later. Each ping max once per device. */
+(function(){var TOPIC='ploy-pup-570d5ce67573',P='ploy-samoyed-ping',ls=localStorage;
+function get(k){try{return ls.getItem(P+k)}catch(e){return null}}
+function ping(k,msg){if(get('')==='me'||get(k))return;try{fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:msg,keepalive:true}).then(function(r){if(r.ok)try{ls.setItem(P+k,'1')}catch(e){}}).catch(function(){})}catch(e){}}
+window._pingName=function(n){ping('-name','🐶 พลอยตั้งชื่อน้องว่า "'+n+'" แล้ว!')};
+try{if(/[?&]me=1/.test(location.search)){ls.setItem(P,'me');return}
+var o=null;try{o=JSON.parse(ls.getItem('ploy-samoyed-v1')||'null')}catch(e){}
+if(!o||!o.name)ping('-first','🐶 พลอยเปิดเกมครั้งแรกแล้ว!');
+else if(!o.last||Date.now()-o.last>30*60e3)ping('-back','🐶 พลอยกลับมาเล่นเกมแล้ว — น้องชื่อ '+o.name+' เลเวล '+(o.lv||1));
 }catch(e){}})();</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
 </body>
